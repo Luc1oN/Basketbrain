@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PracticePal — Tonight's plan, sorted</title>
+<meta name="theme-color" content="#201B17">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ── Clay Court design tokens ─────────────────────────── */
+  :root {
+    --ink: #201B17;
+    --ink-lift: #2A241E;
+    --ink-raise: #342C25;
+    --chalk: #F3EDE4;
+    --chalk-muted: #A79B8C;
+    --chalk-faint: #6E645A;
+    --clay: #C4593B;
+    --clay-deep: #A8472D;
+    --court: #3E6B54;
+    --court-deep: #2E5140;
+    --brass: #C29A55;
+    --line: rgba(243,237,228,0.09);
+    --shadow-warm: rgba(20,15,11,0.5);
+    --r-card: 12px;
+    --r-btn: 10px;
+    --gutter: 20px;
+    --p: var(--clay); /* active persona colour, set from JS */
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html { background: var(--ink); }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--ink);
+    color: var(--chalk);
+    min-height: 100vh;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  .frame { max-width: 520px; margin: 0 auto; padding: 0 var(--gutter) 48px; position: relative; }
+
+  /* grain overlay — kills the flat hex look */
+  body::after {
+    content: ""; position: fixed; inset: 0; z-index: 90; pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ambient drifting dot-grid — Ask screen only */
+  #askScreen::before {
+    content: ""; position: fixed; inset: -80px; z-index: 0; pointer-events: none;
+    background-image: radial-gradient(circle, rgba(243,237,228,0.6) 1px, transparent 1.5px);
+    background-size: 30px 30px;
+    opacity: 0.045;
+    animation: drift 26s linear infinite;
+  }
+  @keyframes drift {
+    from { transform: translate(0, 0); }
+    50%  { transform: translate(18px, 26px); }
+    to   { transform: translate(0, 0); }
+  }
+
+  h1, h2, h3, .fraunces { font-family: 'Fraunces', Georgia, serif; }
+
+  main { position: relative; z-index: 1; }
+  [hidden] { display: none !important; }
+
+  /* ── Hero ─────────────────────────────────────────────── */
+  .hero {
+    margin: 0 calc(-1 * var(--gutter)) 24px;
+    padding: 40px var(--gutter) 26px;
+    background: linear-gradient(160deg, var(--court) 0%, var(--court-deep) 100%);
+    border-bottom: 1px solid rgba(243,237,228,0.12);
+    position: relative; overflow: hidden;
+  }
+  .hero::after { /* chalk baseline motif */
+    content: ""; position: absolute; left: 0; right: 0; bottom: 10px; height: 2px;
+    background: repeating-linear-gradient(90deg, rgba(243,237,228,.35) 0 14px, transparent 14px 24px);
+    opacity: .5;
+  }
+  .hero h1 { font-size: 34px; font-weight: 600; letter-spacing: -0.5px; }
+  .hero p { font-family: 'Fraunces', serif; font-style: italic; font-size: 15px; color: rgba(243,237,228,0.85); margin-top: 2px; }
+
+  .section-label {
+    font-size: 12px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase;
+    color: var(--chalk-faint); margin: 26px 0 12px;
+  }
+
+  /* ── Recent shelf ─────────────────────────────────────── */
+  .shelf { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1*var(--gutter)); padding: 2px var(--gutter) 6px; }
+  .shelf::-webkit-scrollbar { display: none; }
+  .shelf-chip {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
+    background: var(--ink-lift); border: 1px solid var(--line); border-radius: 99px;
+    padding: 9px 16px 9px 12px; color: var(--chalk); font: inherit; font-size: 13.5px; font-weight: 500;
+    cursor: pointer; transition: transform .16s ease, border-color .16s ease;
+  }
+  .shelf-chip:active { transform: scale(.96); }
+  .shelf-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+  .shelf-chip .when { color: var(--chalk-faint); font-size: 12px; }
+  .shelf-empty {
+    display: flex; align-items: center; gap: 10px; color: var(--chalk-muted);
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 14.5px;
+    background: var(--ink-lift); border: 1px dashed var(--line); border-radius: var(--r-card);
+    padding: 14px 16px;
+  }
+
+  /* ── Persona picker (the hero of the Ask screen) ──────── */
+  .personas {
+    display: flex; gap: 14px; overflow-x: auto;
+    scroll-snap-type: x mandatory; scrollbar-width: none;
+    margin: 0 calc(-1*var(--gutter)); padding: 14px var(--gutter) 20px;
+  }
+  .personas::-webkit-scrollbar { display: none; }
+  .persona {
+    flex: 0 0 76%; scroll-snap-align: center;
+    background: var(--ink-lift); border: 1px solid var(--line); border-radius: var(--r-card);
+    padding: 22px 20px 20px; text-align: left; color: var(--chalk); font: inherit;
+    cursor: pointer; position: relative; overflow: hidden;
+    transition: transform .18s cubic-bezier(.34,1.4,.5,1), box-shadow .18s ease, border-color .18s ease;
+  }
+  .persona .glow {
+    position: absolute; top: -46px; left: -30px; width: 190px; height: 190px; border-radius: 50%;
+    background: radial-gradient(circle, var(--pc) 0%, transparent 68%);
+    opacity: .16; transition: opacity .25s ease; pointer-events: none;
+  }
+  .persona .picon { color: var(--pc); margin-bottom: 12px; }
+  .persona .picon svg { width: 30px; height: 30px; }
+  .persona h3 { font-size: 21px; font-weight: 600; margin-bottom: 3px; }
+  .persona p { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; color: var(--chalk-muted); }
+  .persona.selected {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--pc) 65%, transparent);
+    box-shadow: 0 10px 28px var(--shadow-warm), 0 0 0 1px color-mix(in srgb, var(--pc) 45%, transparent), 0 0 34px -6px color-mix(in srgb, var(--pc) 40%, transparent);
+    background: var(--ink-raise);
+  }
+  .persona.selected .glow { opacity: .3; }
+  .persona:active { transform: scale(.97); }
+
+  /* ── Inputs card ──────────────────────────────────────── */
+  .inputs {
+    background: var(--ink-lift); border: 1px solid var(--line); border-radius: var(--r-card);
+    padding: 20px 16px; box-shadow: 0 2px 10px var(--shadow-warm);
+  }
+  .stepper-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .stepper { text-align: center; }
+  .stepper .lab { font-size: 11.5px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--chalk-faint); margin-bottom: 8px; }
+  .stepper .ctrl {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--ink); border: 1px solid var(--line); border-radius: var(--r-btn); padding: 4px;
+  }
+  .stepper .val { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; min-width: 26px; text-align: center; }
+  .stepper .val small { display: block; font-family: 'Inter'; font-size: 9.5px; font-weight: 500; color: var(--chalk-faint); letter-spacing: .5px; margin-top: -3px; }
+  .stepper button {
+    width: 27px; height: 36px; flex: 0 0 auto; border: none; background: transparent; color: var(--chalk-muted);
+    font-size: 20px; border-radius: 8px; cursor: pointer; display: grid; place-items: center;
+    transition: transform .15s cubic-bezier(.34,1.5,.5,1), color .15s, background .15s;
+  }
+  .stepper button:active { transform: scale(.82); background: var(--ink-raise); color: var(--chalk); }
+  .stepper button svg { width: 16px; height: 16px; }
+
+  .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 18px; }
+  .seg button {
+    border: 1px solid var(--line); background: var(--ink); color: var(--chalk-muted);
+    font: inherit; font-size: 12.5px; font-weight: 600; padding: 9px 2px; border-radius: 99px;
+    cursor: pointer; transition: all .16s ease;
+  }
+  .seg button.on { background: var(--chalk); color: var(--ink); border-color: var(--chalk); }
+  .seg button:active { transform: scale(.95); }
+
+  .focus-wrap { margin-top: 18px; }
+  .focus-wrap input {
+    width: 100%; background: var(--ink); border: 1px solid var(--line); border-radius: var(--r-btn);
+    color: var(--chalk); font: inherit; font-size: 15px; padding: 12px 14px; outline: none;
+    transition: border-color .16s;
+  }
+  .focus-wrap input:focus { border-color: color-mix(in srgb, var(--p) 55%, transparent); }
+  .focus-wrap input::placeholder { color: var(--chalk-faint); }
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .chips button {
+    border: 1px solid var(--line); background: transparent; color: var(--chalk-muted);
+    font: inherit; font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: 99px;
+    cursor: pointer; transition: all .16s ease;
+  }
+  .chips button.on { border-color: var(--p); color: var(--chalk); background: color-mix(in srgb, var(--p) 16%, transparent); }
+  .chips button:active { transform: scale(.94); }
+
+  /* ── Generate button + serve moment ───────────────────── */
+  .generate {
+    width: 100%; margin-top: 22px; padding: 17px;
+    background: linear-gradient(180deg, var(--clay) 0%, var(--clay-deep) 100%);
+    color: #FFF7EE; border: none; border-radius: var(--r-btn);
+    font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; letter-spacing: .2px;
+    cursor: pointer; position: relative; overflow: hidden;
+    box-shadow: 0 6px 20px -4px rgba(196,89,59,0.45), 0 2px 8px var(--shadow-warm);
+    transition: transform .15s ease, box-shadow .2s ease;
+  }
+  .generate:active { transform: scale(.98); }
+  .generate.serving { animation: recoil .55s cubic-bezier(.34,1.5,.5,1); }
+  @keyframes recoil { 0% {transform:scale(1)} 22% {transform:scale(.94)} 60% {transform:scale(1.025)} 100% {transform:scale(1)} }
+  .generate .ball {
+    position: absolute; width: 12px; height: 12px; border-radius: 50%;
+    background: #DFF25E; box-shadow: 0 0 10px rgba(223,242,94,.8); top: 50%; left: 8%;
+    opacity: 0; pointer-events: none;
+  }
+  .generate.serving .ball { animation: serve .55s cubic-bezier(.3,.1,.4,1) forwards; }
+  @keyframes serve {
+    0%   { opacity: 1; transform: translate(0, -50%) scale(1); }
+    45%  { transform: translate(24vw, -260%) scale(.9); }
+    100% { opacity: 0; transform: translate(46vw, -40%) scale(.7); }
+  }
+  .generate .dust {
+    position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(243,237,228,.85); top: 50%; left: 8%; opacity: 0; pointer-events: none;
+  }
+  .generate.serving .dust { animation: dust .5s ease-out forwards; }
+  .generate.serving .dust:nth-child(3) { animation-delay: .05s; --dx: 14px; --dy: -18px; }
+  .generate.serving .dust:nth-child(4) { animation-delay: .1s; --dx: -10px; --dy: -12px; }
+  .generate.serving .dust:nth-child(5) { animation-delay: .07s; --dx: 8px; --dy: 14px; }
+  @keyframes dust {
+    0% { opacity: .9; transform: translate(0,-50%) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx,10px), calc(-50% + var(--dy,-14px))) scale(.3); }
+  }
+
+  .ask-error {
+    margin-top: 14px; background: var(--ink-lift); border: 1px solid rgba(196,89,59,.5);
+    border-radius: var(--r-card); padding: 14px 16px; font-size: 14px; color: var(--chalk);
+  }
+  .ask-error button {
+    margin-top: 10px; background: var(--clay); border: none; color: #FFF7EE; font: inherit;
+    font-weight: 600; font-size: 13.5px; padding: 8px 18px; border-radius: 99px; cursor: pointer;
+  }
+
+  /* ── Ask ⇄ Plan transition ────────────────────────────── */
+  #askScreen.exit { animation: collapseUp .4s ease forwards; }
+  @keyframes collapseUp { to { opacity: 0; transform: translateY(-26px) scale(.985); } }
+  #planScreen .roll { opacity: 0; animation: unroll .5s cubic-bezier(.22,.9,.35,1) forwards; animation-delay: var(--d, 0s); }
+  @keyframes unroll { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+  /* ── Plan screen ──────────────────────────────────────── */
+  .summary-bar {
+    position: sticky; top: 10px; z-index: 40;
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    background: color-mix(in srgb, var(--ink-raise) 92%, transparent);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--line); border-radius: 99px; padding: 10px 16px;
+    color: var(--chalk); font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
+    box-shadow: 0 6px 18px var(--shadow-warm);
+    margin: 14px 0 4px;
+  }
+  .summary-bar .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--p); flex: 0 0 auto; }
+  .summary-bar .meta { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--chalk-muted); }
+  .summary-bar .edit { color: var(--chalk); display: flex; align-items: center; gap: 4px; font-weight: 600; }
+  .summary-bar svg { width: 14px; height: 14px; }
+
+  .session-head {
+    background: var(--ink-lift); border: 1px solid var(--line); border-left: 4px solid var(--p);
+    border-radius: var(--r-card); padding: 20px 18px; margin-top: 18px;
+    box-shadow: 0 4px 14px var(--shadow-warm);
+  }
+  .session-head .pname { font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: var(--p); margin-bottom: 6px; }
+  .session-head h2 { font-size: 27px; font-weight: 600; letter-spacing: -.3px; line-height: 1.15; }
+  .session-head .meta { margin-top: 8px; font-size: 13.5px; color: var(--chalk-muted); }
+
+  /* timeline: cards hung off a vertical dotted chalk line */
+  .timeline { margin-top: 24px; position: relative; padding-left: 26px; }
+  .timeline::before {
+    content: ""; position: absolute; left: 8px; top: 6px; bottom: 6px; width: 0;
+    border-left: 2px dashed rgba(243,237,228,0.22);
+  }
+  .block {
+    position: relative; background: var(--ink-lift); border: 1px solid var(--line);
+    border-radius: var(--r-card); padding: 16px 16px 15px; margin-bottom: 14px;
+    cursor: pointer; transition: border-color .2s ease, background .2s ease, opacity .25s ease, transform .2s ease;
+    box-shadow: 0 2px 8px var(--shadow-warm);
+  }
+  .block::before { /* node on the chalk line */
+    content: ""; position: absolute; left: -24px; top: 22px; width: 10px; height: 10px;
+    border-radius: 50%; background: var(--ink); border: 2px solid var(--chalk-faint);
+    transition: all .2s ease;
+  }
+  .block .time { font-family: 'Fraunces', serif; font-size: 13px; font-weight: 600; color: var(--brass); letter-spacing: .6px; }
+  .block h3 { font-size: 18.5px; font-weight: 600; margin: 3px 0 6px; }
+  .block .desc { font-size: 14px; color: var(--chalk-muted); }
+  .block .cue { font-family: 'Fraunces', serif; font-style: italic; font-size: 13.5px; color: var(--chalk-faint); margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--line); }
+  .block.current {
+    border-color: color-mix(in srgb, var(--p) 70%, transparent);
+    background: color-mix(in srgb, var(--p) 10%, var(--ink-raise));
+    transform: translateX(2px);
+    box-shadow: 0 8px 22px var(--shadow-warm), 0 0 24px -8px color-mix(in srgb, var(--p) 45%, transparent);
+  }
+  .block.current::before { background: var(--p); border-color: var(--p); box-shadow: 0 0 10px color-mix(in srgb, var(--p) 70%, transparent); }
+  .block.current .desc { color: var(--chalk); }
+  .block.done { opacity: .45; }
+  .block.done::before { background: var(--chalk-faint); border-color: var(--chalk-faint); }
+  .tap-hint { font-size: 12px; color: var(--chalk-faint); text-align: center; margin: -2px 0 18px; }
+
+  .card { background: var(--ink-lift); border: 1px solid var(--line); border-radius: var(--r-card); padding: 18px 16px; margin-bottom: 14px; box-shadow: 0 2px 8px var(--shadow-warm); }
+  .card h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .card h3 svg { width: 17px; height: 17px; color: var(--chalk-muted); }
+  .card p { font-size: 14px; color: var(--chalk-muted); }
+  .court-svg { display: block; width: 100%; margin-top: 14px; border-radius: 8px; }
+
+  .finisher {
+    border: 1.5px solid color-mix(in srgb, var(--brass) 75%, transparent);
+    background: linear-gradient(170deg, color-mix(in srgb, var(--brass) 12%, var(--ink-lift)), var(--ink-lift) 55%);
+    box-shadow: 0 4px 18px var(--shadow-warm), 0 0 26px -10px color-mix(in srgb, var(--brass) 45%, transparent);
+  }
+  .finisher .tag { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--brass); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .finisher .tag svg { width: 14px; height: 14px; }
+  .finisher h3 { font-size: 20px; }
+
+  /* sticky action bar */
+  .action-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    padding: 12px var(--gutter) calc(14px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, transparent, var(--ink) 34%);
+    display: flex; gap: 10px; max-width: 520px; margin: 0 auto;
+  }
+  .action-bar button {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 14px; border-radius: var(--r-btn); font: inherit; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform .15s ease;
+  }
+  .action-bar button:active { transform: scale(.97); }
+  .action-bar svg { width: 17px; height: 17px; }
+  .btn-share { background: var(--court); color: var(--chalk); border: none; box-shadow: 0 6px 18px -4px rgba(62,107,84,.5); }
+  .btn-remix { background: var(--ink-raise); color: var(--chalk); border: 1px solid var(--line); }
+  .plan-pad { height: 92px; }
+
+  /* remix sheet */
+  .sheet-veil { position: fixed; inset: 0; z-index: 60; background: rgba(20,15,11,.6); backdrop-filter: blur(3px); opacity: 0; transition: opacity .22s ease; }
+  .sheet-veil.open { opacity: 1; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 61; max-width: 520px; margin: 0 auto;
+    background: var(--ink-raise); border: 1px solid var(--line); border-bottom: none;
+    border-radius: 18px 18px 0 0; padding: 22px var(--gutter) calc(26px + env(safe-area-inset-bottom));
+    transform: translateY(105%); transition: transform .3s cubic-bezier(.22,.9,.3,1);
+    box-shadow: 0 -12px 40px var(--shadow-warm);
+  }
+  .sheet.open { transform: none; }
+  .sheet h3 { font-size: 20px; margin-bottom: 4px; }
+  .sheet .sub { font-family: 'Fraunces', serif; font-style: italic; font-size: 13.5px; color: var(--chalk-muted); margin-bottom: 16px; }
+  .sheet .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sheet .opts button {
+    background: var(--ink-lift); border: 1px solid var(--line); border-radius: var(--r-btn);
+    color: var(--chalk); font: inherit; font-size: 14.5px; font-weight: 600; padding: 15px 8px;
+    cursor: pointer; transition: all .16s ease;
+  }
+  .sheet .opts button:active { transform: scale(.95); border-color: var(--p); }
+
+  /* ── Loading / error overlay ──────────────────────────── */
+  .overlay {
+    position: fixed; inset: 0; z-index: 70; background: color-mix(in srgb, var(--ink) 94%, transparent);
+    backdrop-filter: blur(6px); display: grid; place-items: center; text-align: center; padding: 32px;
+  }
+  .overlay .bounce {
+    width: 16px; height: 16px; border-radius: 50%; background: #DFF25E; margin: 0 auto 22px;
+    box-shadow: 0 0 16px rgba(223,242,94,.6);
+    animation: bounce .7s cubic-bezier(.4,0,.6,1) infinite alternate;
+  }
+  @keyframes bounce { from { transform: translateY(-16px) } to { transform: translateY(10px) scaleY(.92) } }
+  .overlay .ism { font-family: 'Fraunces', serif; font-style: italic; font-size: 19px; color: var(--chalk); min-height: 30px; transition: opacity .3s ease; }
+  .overlay .sub { font-size: 13px; color: var(--chalk-faint); margin-top: 10px; }
+  .overlay .err-emoji { font-size: 34px; margin-bottom: 14px; }
+  .overlay .actions { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+  .overlay .actions button {
+    font: inherit; font-weight: 600; font-size: 14.5px; padding: 11px 26px; border-radius: 99px; cursor: pointer;
+  }
+  .overlay .retry { background: var(--clay); color: #FFF7EE; border: none; }
+  .overlay .back { background: transparent; color: var(--chalk-muted); border: 1px solid var(--line); }
+
+  .toast {
+    position: fixed; bottom: 104px; left: 50%; transform: translate(-50%, 14px); z-index: 80;
+    background: var(--chalk); color: var(--ink); font-size: 13.5px; font-weight: 600;
+    padding: 11px 20px; border-radius: 99px; opacity: 0; pointer-events: none;
+    transition: all .28s cubic-bezier(.22,.9,.3,1); box-shadow: 0 8px 24px var(--shadow-warm);
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* ── Reduced motion: state carried by colour/weight ───── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: opacity .15s ease !important; }
+    #askScreen::before { display: none; }
+    #planScreen .roll { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <!-- ══ STATE A · ASK ══════════════════════════════════ -->
+  <main id="askScreen">
+    <header class="hero">
+      <h1>PracticePal</h1>
+      <p>Tonight's plan, sorted.</p>
+    </header>
+
+    <div id="recentWrap">
+      <div class="section-label">Recent sessions</div>
+      <div id="recentShelf"></div>
+    </div>
+
+    <div class="section-label">Who's coaching tonight?</div>
+    <div class="personas" id="personaRow"></div>
+
+    <div class="inputs">
+      <div class="stepper-row">
+        <div class="stepper" data-k="players">
+          <div class="lab">Players</div>
+          <div class="ctrl">
+            <button type="button" data-step="-1" aria-label="Fewer players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <div class="val" id="v-players">4</div>
+            <button type="button" data-step="1" aria-label="More players"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          </div>
+        </div>
+        <div class="stepper" data-k="courts">
+          <div class="lab">Courts</div>
+          <div class="ctrl">
+            <button type="button" data-step="-1" aria-label="Fewer courts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <div class="val" id="v-courts">1</div>
+            <button type="button" data-step="1" aria-label="More courts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          </div>
+        </div>
+        <div class="stepper" data-k="duration">
+          <div class="lab">Minutes</div>
+          <div class="ctrl">
+            <button type="button" data-step="-1" aria-label="Shorter session"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <div class="val" id="v-duration">75</div>
+            <button type="button" data-step="1" aria-label="Longer session"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="seg" id="levelSeg"></div>
+
+      <div class="focus-wrap">
+        <input id="focusInput" type="text" placeholder="Focus (optional) — e.g. second serve" maxlength="80" autocomplete="off">
+        <div class="chips" id="focusChips"></div>
+      </div>
+    </div>
+
+    <button class="generate" id="generateBtn">
+      Build tonight's session
+      <span class="ball"></span>
+      <span class="dust"></span><span class="dust"></span><span class="dust"></span>
+    </button>
+
+    <div class="ask-error" id="askError" hidden></div>
+  </main>
+
+  <!-- ══ STATE B · PLAN ═════════════════════════════════ -->
+  <main id="planScreen" hidden>
+    <button class="summary-bar roll" id="summaryBar" style="--d:0s">
+      <span class="dot"></span>
+      <span class="meta" id="summaryMeta"></span>
+      <span class="edit">Edit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></span>
+    </button>
+
+    <section class="session-head roll" id="planHead" style="--d:.06s"></section>
+    <div class="tap-hint roll" style="--d:.1s; margin-top:14px">Tap a block to mark where you are</div>
+    <section class="timeline" id="timeline"></section>
+    <section id="rotationSlot"></section>
+    <section id="finisherSlot"></section>
+    <div class="plan-pad"></div>
+
+    <div class="action-bar">
+      <button class="btn-share" id="shareBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg>
+        Share
+      </button>
+      <button class="btn-remix" id="remixBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg>
+        Remix
+      </button>
+    </div>
+  </main>
+</div>
+
+<!-- remix sheet -->
+<div class="sheet-veil" id="sheetVeil" hidden></div>
+<div class="sheet" id="remixSheet" aria-hidden="true">
+  <h3 class="fraunces">Remix this session</h3>
+  <p class="sub">Same ingredients, different recipe.</p>
+  <div class="opts">
+    <button data-var="easier">Easier</button>
+    <button data-var="harder">Harder</button>
+    <button data-var="competitive">More competitive</button>
+    <button data-var="fitness">More fitness</button>
+  </div>
+</div>
+
+<!-- loading / error overlay -->
+<div class="overlay" id="overlay" hidden>
+  <div>
+    <div id="ovLoading">
+      <div class="bounce"></div>
+      <div class="ism" id="coachIsm">Stringing the racquets…</div>
+      <div class="sub">Your coach is thinking</div>
+    </div>
+    <div id="ovError" hidden>
+      <div class="err-emoji">🎾</div>
+      <div class="ism" id="errMsg">The coach could not be reached.</div>
+      <div class="actions">
+        <button class="retry" id="retryBtn">Try again</button>
+        <button class="back" id="dismissBtn">Back</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────
+const SUPABASE_URL = 'https://wpqpubbyqvqhcwxmzhwu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwcXB1YmJ5cXZxaGN3eG16aHd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjY3MzEsImV4cCI6MjA5NjE0MjczMX0.ZRQwj4IDNPctaU2zgyDz16MOBjIU4XrRMS5UeBULe8A';
+
+// ── Design data ───────────────────────────────────────────
+const ICONS = {
+  target: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+  compass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+  flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+  trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+};
+
+const PERSONAS = [
+  { id: 'technician', name: 'The Technician', desc: 'Sharpen one thing until it sticks.', color: '#C4593B', icon: 'target' },
+  { id: 'tactician', name: 'The Tactician', desc: 'Win with patterns, not power.', color: '#5C7B96', icon: 'compass' },
+  { id: 'grinder', name: 'The Grinder', desc: 'Legs tonight, trophies Sunday.', color: '#C29A55', icon: 'flame' },
+  { id: 'entertainer', name: 'The Entertainer', desc: 'Games, chaos, bragging rights.', color: '#4E8A66', icon: 'trophy' },
+];
+
+const LEVELS = ['Beginner', 'Improver', 'Intermediate', 'Advanced'];
+const FOCUS_SUGGESTIONS = ['second serve', 'net play', 'consistency', 'returns', 'footwork'];
+const COACH_ISMS = [
+  'Stringing the racquets…', 'Chalking the lines…', 'Checking the nets…',
+  'Pacing the baseline…', 'Counting the balls…', 'Rolling the clay…',
+];
+
+const LIMITS = { players: [1, 16], courts: [1, 6], duration: [30, 180] };
+const STEPS = { players: 1, courts: 1, duration: 15 };
+
+// ── State ─────────────────────────────────────────────────
+const state = {
+  personaId: 'technician',
+  players: 4, courts: 1, duration: 75,
+  level: 'Intermediate', focus: '',
+  plan: null, sessionInputs: null, lastRequest: null, currentBlock: -1,
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const personaById = (id) => PERSONAS.find((p) => p.id === id) || PERSONAS[0];
+
+// ── Smart defaults + history (localStorage) ───────────────
+function loadDefaults() {
+  try {
+    const last = JSON.parse(localStorage.getItem('pp_last') || 'null');
+    if (last) Object.assign(state, {
+      personaId: personaById(last.personaId).id,
+      players: clamp('players', last.players), courts: clamp('courts', last.courts),
+      duration: clamp('duration', last.duration),
+      level: LEVELS.includes(last.level) ? last.level : 'Intermediate',
+      focus: typeof last.focus === 'string' ? last.focus : '',
+    });
+  } catch { /* fresh start */ }
+}
+function saveDefaults() {
+  const { personaId, players, courts, duration, level, focus } = state;
+  localStorage.setItem('pp_last', JSON.stringify({ personaId, players, courts, duration, level, focus }));
+}
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('pp_history') || '[]'); } catch { return []; }
+}
+function saveToHistory(entry) {
+  const h = getHistory();
+  h.unshift(entry);
+  localStorage.setItem('pp_history', JSON.stringify(h.slice(0, 12)));
+  renderShelf();
+}
+function clamp(k, v) {
+  const n = Math.round(Number(v));
+  if (!Number.isFinite(n)) return state[k];
+  return Math.min(LIMITS[k][1], Math.max(LIMITS[k][0], n));
+}
+
+// ── Ask screen rendering ──────────────────────────────────
+function renderShelf() {
+  const h = getHistory();
+  const shelf = $('recentShelf');
+  if (h.length === 0) {
+    shelf.innerHTML = '<div class="shelf-empty"><span>🎾</span> Your first session starts here</div>';
+    return;
+  }
+  shelf.innerHTML = '<div class="shelf">' + h.map((e, i) => {
+    const p = personaById(e.inputs.personaId);
+    return `<button class="shelf-chip" data-i="${i}">
+      <span class="dot" style="background:${p.color}"></span>
+      <span>${esc(e.plan.title)}</span>
+      <span class="when">${esc(e.when)}</span>
+    </button>`;
+  }).join('') + '</div>';
+  shelf.querySelectorAll('.shelf-chip').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const e = getHistory()[Number(btn.dataset.i)];
+      if (!e) return;
+      state.plan = e.plan;
+      state.sessionInputs = e.inputs;
+      state.currentBlock = -1;
+      showPlan(false);
+    });
+  });
+}
+
+function renderPersonas() {
+  const row = $('personaRow');
+  row.innerHTML = PERSONAS.map((p) => `
+    <button class="persona ${p.id === state.personaId ? 'selected' : ''}" data-id="${p.id}" style="--pc:${p.color}">
+      <span class="glow"></span>
+      <div class="picon">${ICONS[p.icon]}</div>
+      <h3>${p.name}</h3>
+      <p>${p.desc}</p>
+    </button>`).join('');
+  row.querySelectorAll('.persona').forEach((card) => {
+    card.addEventListener('click', () => {
+      state.personaId = card.dataset.id;
+      row.querySelectorAll('.persona').forEach((c) => c.classList.toggle('selected', c === card));
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+  });
+  // bring the selected card into view on load
+  const sel = row.querySelector('.persona.selected');
+  if (sel) requestAnimationFrame(() => sel.scrollIntoView({ block: 'nearest', inline: 'center' }));
+}
+
+function renderSteppers() {
+  ['players', 'courts', 'duration'].forEach((k) => { $('v-' + k).textContent = state[k]; });
+  document.querySelectorAll('.stepper').forEach((st) => {
+    const k = st.dataset.k;
+    st.querySelectorAll('button').forEach((b) => {
+      b.onclick = () => {
+        state[k] = clamp(k, state[k] + Number(b.dataset.step) * STEPS[k]);
+        $('v-' + k).textContent = state[k];
+      };
+    });
+  });
+}
+
+function renderLevels() {
+  const seg = $('levelSeg');
+  seg.innerHTML = LEVELS.map((l) => `<button class="${l === state.level ? 'on' : ''}" data-l="${l}">${l}</button>`).join('');
+  seg.querySelectorAll('button').forEach((b) => {
+    b.onclick = () => {
+      state.level = b.dataset.l;
+      seg.querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+    };
+  });
+}
+
+function renderFocus() {
+  const input = $('focusInput');
+  input.value = state.focus;
+  const chips = $('focusChips');
+  chips.innerHTML = FOCUS_SUGGESTIONS.map((f) => `<button data-f="${f}" class="${state.focus === f ? 'on' : ''}">${f}</button>`).join('');
+  const sync = () => chips.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset.f === state.focus));
+  chips.querySelectorAll('button').forEach((b) => {
+    b.onclick = () => {
+      state.focus = state.focus === b.dataset.f ? '' : b.dataset.f;
+      input.value = state.focus;
+      sync();
+    };
+  });
+  input.addEventListener('input', () => { state.focus = input.value.trim(); sync(); });
+}
+
+// ── Generate flow ─────────────────────────────────────────
+let ismTimer = null;
+function showLoading() {
+  $('ovLoading').hidden = false;
+  $('ovError').hidden = true;
+  $('overlay').hidden = false;
+  let i = Math.floor(Math.random() * COACH_ISMS.length);
+  const el = $('coachIsm');
+  el.textContent = COACH_ISMS[i];
+  clearInterval(ismTimer);
+  ismTimer = setInterval(() => {
+    el.style.opacity = 0;
+    setTimeout(() => { i = (i + 1) % COACH_ISMS.length; el.textContent = COACH_ISMS[i]; el.style.opacity = 1; }, 300);
+  }, 1900);
+}
+function showError(msg) {
+  clearInterval(ismTimer);
+  $('ovLoading').hidden = true;
+  $('ovError').hidden = false;
+  $('errMsg').textContent = msg;
+  $('overlay').hidden = false;
+}
+function hideOverlay() { clearInterval(ismTimer); $('overlay').hidden = true; }
+
+async function requestPlan(payload) {
+  state.lastRequest = payload;
+  showLoading();
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/practicepal`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.plan) throw new Error(data.error || 'The coach went quiet. Try again.');
+
+    state.plan = data.plan;
+    state.sessionInputs = {
+      personaId: payload.persona, players: payload.players, courts: payload.courts,
+      duration: payload.duration, level: payload.level, focus: payload.focus,
+    };
+    state.currentBlock = -1;
+    saveDefaults();
+    saveToHistory({
+      when: new Date().toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short' }),
+      inputs: state.sessionInputs,
+      plan: state.plan,
+    });
+    hideOverlay();
+    showPlan(true);
+  } catch (err) {
+    showError(err.message || 'Something went wrong.');
+  }
+}
+
+function generate() {
+  $('askError').hidden = true;
+  const btn = $('generateBtn');
+  btn.classList.remove('serving');
+  void btn.offsetWidth; // restart the serve animation
+  btn.classList.add('serving');
+  const payload = {
+    persona: state.personaId, players: state.players, courts: state.courts,
+    duration: state.duration, level: state.level, focus: state.focus,
+  };
+  setTimeout(() => requestPlan(payload), 480); // let the serve land first
+}
+
+// ── Plan screen rendering ─────────────────────────────────
+function metaLine(inp) {
+  return `${inp.players} player${inp.players === 1 ? '' : 's'} · ${inp.courts} court${inp.courts === 1 ? '' : 's'} · ${inp.duration} min · ${inp.level}`;
+}
+
+function courtDiagram(players) {
+  const onCourt = Math.min(players, 4);
+  const waiting = players - onCourt;
+  const spots = [[105, 42], [215, 42], [105, 118], [215, 118]];
+  let dots = spots.slice(0, onCourt).map(([x, y], i) =>
+    `<circle cx="${x}" cy="${y}" r="7" fill="var(--p)" opacity="${i % 2 ? .75 : 1}"/>`).join('');
+  let queue = '';
+  for (let i = 0; i < waiting; i++) {
+    queue += `<circle cx="${300 + (i % 2) * 16}" cy="${40 + Math.floor(i / 2) * 20}" r="6" fill="var(--chalk-faint)"/>`;
+  }
+  return `<svg class="court-svg" viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+    <rect x="20" y="12" width="280" height="136" rx="4" fill="rgba(196,89,59,0.12)" stroke="rgba(243,237,228,0.4)" stroke-width="1.5"/>
+    <line x1="160" y1="12" x2="160" y2="148" stroke="rgba(243,237,228,0.55)" stroke-width="2" stroke-dasharray="4 4"/>
+    <rect x="90" y="34" width="140" height="92" fill="none" stroke="rgba(243,237,228,0.28)" stroke-width="1"/>
+    <line x1="90" y1="80" x2="230" y2="80" stroke="rgba(243,237,228,0.28)" stroke-width="1"/>
+    ${dots}${queue}
+    ${waiting > 0 ? `<text x="308" y="${58 + Math.floor((waiting - 1) / 2) * 20}" fill="var(--chalk-faint)" font-size="9" font-family="Inter" text-anchor="middle">next</text>` : ''}
+  </svg>`;
+}
+
+function fmtRange(b) {
+  const s = Number(b.start), e = Number(b.end);
+  return Number.isFinite(s) && Number.isFinite(e) ? `${s}–${e}` : '';
+}
+
+function showPlan(animate) {
+  const plan = state.plan, inp = state.sessionInputs;
+  const persona = personaById(inp.personaId);
+  document.documentElement.style.setProperty('--p', persona.color);
+
+  $('summaryMeta').textContent = metaLine(inp);
+  $('planHead').innerHTML = `
+    <div class="pname">${esc(persona.name)}</div>
+    <h2>${esc(plan.title)}</h2>
+    <div class="meta">${esc(metaLine(inp))}${inp.focus ? ' · ' + esc(inp.focus) : ''}</div>`;
+
+  const blocks = Array.isArray(plan.timeline) ? plan.timeline : [];
+  $('timeline').innerHTML = blocks.map((b, i) => `
+    <div class="block roll" data-i="${i}" style="--d:${0.14 + i * 0.07}s">
+      <div class="time">${esc(fmtRange(b))}</div>
+      <h3>${esc(b.title)}</h3>
+      <div class="desc">${esc(b.description)}</div>
+      ${b.cue ? `<div class="cue">"${esc(b.cue)}"</div>` : ''}
+    </div>`).join('');
+  $('timeline').querySelectorAll('.block').forEach((el) => {
+    el.addEventListener('click', () => setCurrentBlock(Number(el.dataset.i)));
+  });
+
+  const rot = plan.rotation;
+  $('rotationSlot').innerHTML = rot && rot.summary ? `
+    <div class="card roll" style="--d:${0.14 + blocks.length * 0.07}s">
+      <h3>${ICONS.users} Rotation</h3>
+      <p>${esc(rot.summary)}</p>
+      ${rot.needs_diagram ? courtDiagram(inp.players) : ''}
+    </div>` : '';
+
+  const fin = plan.finisher;
+  $('finisherSlot').innerHTML = fin && fin.title ? `
+    <div class="card finisher roll" style="--d:${0.2 + blocks.length * 0.07}s">
+      <div class="tag">${ICONS.trophy} Competitive finisher</div>
+      <h3>${esc(fin.title)}</h3>
+      <p>${esc(fin.description)}</p>
+    </div>` : '';
+
+  const swap = () => {
+    $('askScreen').hidden = true;
+    $('askScreen').classList.remove('exit');
+    $('planScreen').hidden = false;
+    window.scrollTo({ top: 0 });
+    if (!animate) $('planScreen').querySelectorAll('.roll').forEach((el) => { el.style.animationDelay = '0s'; });
+  };
+  if (animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    $('askScreen').classList.add('exit');
+    setTimeout(swap, 320);
+  } else swap();
+}
+
+function setCurrentBlock(i) {
+  state.currentBlock = state.currentBlock === i ? -1 : i;
+  $('timeline').querySelectorAll('.block').forEach((el) => {
+    const idx = Number(el.dataset.i);
+    el.classList.toggle('current', idx === state.currentBlock);
+    el.classList.toggle('done', state.currentBlock !== -1 && idx < state.currentBlock);
+  });
+}
+
+function backToAsk() {
+  // restore the session's inputs into the form
+  if (state.sessionInputs) {
+    Object.assign(state, {
+      personaId: state.sessionInputs.personaId, players: state.sessionInputs.players,
+      courts: state.sessionInputs.courts, duration: state.sessionInputs.duration,
+      level: state.sessionInputs.level, focus: state.sessionInputs.focus || '',
+    });
+    renderPersonas(); renderSteppers(); renderLevels(); renderFocus();
+  }
+  $('planScreen').hidden = true;
+  $('askScreen').hidden = false;
+  window.scrollTo({ top: 0 });
+}
+
+// ── Share ─────────────────────────────────────────────────
+function planAsText() {
+  const plan = state.plan, inp = state.sessionInputs;
+  const lines = [
+    `🎾 *${plan.title}*`,
+    metaLine(inp) + (inp.focus ? ` · ${inp.focus}` : ''),
+    '',
+  ];
+  (plan.timeline || []).forEach((b) => {
+    lines.push(`*${fmtRange(b)}* — ${b.title}`);
+    lines.push(b.description);
+    lines.push('');
+  });
+  if (plan.rotation?.summary) { lines.push(`🔄 Rotation: ${plan.rotation.summary}`); lines.push(''); }
+  lines.push('— made with PracticePal');
+  return lines.join('\n');
+}
+
+async function share() {
+  const text = planAsText();
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch { /* cancelled */ }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Copied — paste it into WhatsApp');
+  } catch {
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  }
+}
+
+let toastTimer = null;
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ── Remix ─────────────────────────────────────────────────
+function openSheet() {
+  $('sheetVeil').hidden = false;
+  requestAnimationFrame(() => { $('sheetVeil').classList.add('open'); $('remixSheet').classList.add('open'); });
+}
+function closeSheet() {
+  $('sheetVeil').classList.remove('open');
+  $('remixSheet').classList.remove('open');
+  setTimeout(() => { $('sheetVeil').hidden = true; }, 250);
+}
+function remix(variation) {
+  closeSheet();
+  const inp = state.sessionInputs;
+  requestPlan({
+    persona: inp.personaId, players: inp.players, courts: inp.courts,
+    duration: inp.duration, level: inp.level, focus: inp.focus,
+    variation, previousTitle: state.plan?.title || '',
+  });
+}
+
+// ── Wire up ───────────────────────────────────────────────
+loadDefaults();
+renderShelf();
+renderPersonas();
+renderSteppers();
+renderLevels();
+renderFocus();
+
+$('generateBtn').addEventListener('click', generate);
+$('summaryBar').addEventListener('click', backToAsk);
+$('shareBtn').addEventListener('click', share);
+$('remixBtn').addEventListener('click', openSheet);
+$('sheetVeil').addEventListener('click', closeSheet);
+document.querySelectorAll('#remixSheet .opts button').forEach((b) => {
+  b.addEventListener('click', () => remix(b.dataset.var));
+});
+$('retryBtn').addEventListener('click', () => { if (state.lastRequest) requestPlan(state.lastRequest); });
+$('dismissBtn').addEventListener('click', hideOverlay);
+</script>
+</body>
+</html>
