@@ -86,7 +86,7 @@
   [hidden] { display: none !important; }
 
   /* ── The glass recipe ─────────────────────────────────── */
-  .inputs, .block, .card, .session-head, .sheet, .shelf-chip, .shelf-empty {
+  .inputs, .block, .card, .session-head, .sheet, .past-card, .shelf-empty {
     background: linear-gradient(180deg, var(--glass-hi), var(--glass-lo));
     border: 1px solid var(--stroke);
     box-shadow: var(--inner-light), var(--shadow-card);
@@ -155,19 +155,32 @@
   }
   .section-label::after { background: linear-gradient(90deg, var(--stroke), transparent); }
 
-  /* ── Recent shelf ─────────────────────────────────────── */
-  .shelf { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1*var(--gutter)); padding: 2px var(--gutter) 8px; }
-  .shelf::-webkit-scrollbar { display: none; }
-  .shelf-chip {
-    flex: 0 0 auto; display: flex; align-items: center; gap: 8px;
-    border-radius: 99px;
-    padding: 10px 17px 10px 13px; color: var(--chalk); font: inherit; font-size: 13.5px; font-weight: 500;
-    cursor: pointer; transition: transform .16s ease, border-color .16s ease, box-shadow .2s ease;
+  /* ── Past sessions: the record ────────────────────────── */
+  .past-card {
+    width: 100%; display: flex; align-items: center; gap: 12px;
+    border-radius: var(--r-card); border-left: 3px solid var(--pcol, var(--gold));
+    padding: 14px 15px; margin-bottom: 10px;
+    color: var(--chalk); font: inherit; cursor: pointer; text-align: left;
+    transition: transform .16s ease, border-color .16s ease;
   }
-  .shelf-chip:hover { border-color: rgba(201,164,69,.45); }
-  .shelf-chip:active { transform: scale(.96); }
-  .shelf-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 8px currentColor; }
-  .shelf-chip .when { color: var(--chalk-faint); font-size: 12px; }
+  .past-card:hover { border-color: color-mix(in srgb, var(--pcol, var(--gold)) 50%, transparent); border-left-color: var(--pcol); }
+  .past-card:active { transform: scale(.98); }
+  .past-card .pc-main { flex: 1; min-width: 0; }
+  .past-card .pc-title { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .past-card .pc-meta { font-size: 12px; color: var(--chalk-faint); margin-top: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .past-card .pc-replay {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 5px;
+    font-size: 11.5px; font-weight: 600; color: var(--gold-hi);
+    border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+    border-radius: 99px; padding: 5px 11px;
+  }
+  .past-card .pc-replay svg { width: 12px; height: 12px; }
+  .show-all {
+    width: 100%; background: transparent; border: 1px dashed var(--stroke);
+    border-radius: 99px; color: var(--chalk-muted); font: inherit; font-size: 13px; font-weight: 500;
+    padding: 10px; cursor: pointer; transition: color .16s ease, border-color .16s ease;
+  }
+  .show-all:hover { color: var(--gold-hi); border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
   .shelf-empty {
     display: flex; align-items: center; gap: 10px; color: var(--chalk-muted);
     font-family: 'Fraunces', serif; font-style: italic; font-size: 14.5px;
@@ -366,10 +379,15 @@
     box-shadow: var(--inner-light), 0 10px 30px rgba(4,14,10,.6);
     margin: 14px 0 4px;
   }
+  .summary-bar .backic { width: 18px; height: 18px; color: var(--chalk); flex: 0 0 auto; }
   .summary-bar .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--p); box-shadow: 0 0 10px var(--p); flex: 0 0 auto; }
   .summary-bar .meta { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--chalk-muted); }
-  .summary-bar .edit { color: var(--gold-hi); display: flex; align-items: center; gap: 4px; font-weight: 600; }
-  .summary-bar svg { width: 14px; height: 14px; }
+  .summary-bar .newpill {
+    flex: 0 0 auto; font-size: 12.5px; font-weight: 600; color: var(--gold-hi);
+    border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+    border-radius: 99px; padding: 6px 13px;
+    background: color-mix(in srgb, var(--gold) 8%, transparent);
+  }
 
   .session-head {
     border-radius: var(--r-card); border-left: 4px solid var(--p);
@@ -616,7 +634,7 @@
     </header>
 
     <div id="recentWrap">
-      <div class="section-label">Recent sessions</div>
+      <div class="section-label">Past sessions</div>
       <div id="recentShelf"></div>
     </div>
 
@@ -670,10 +688,11 @@
 
   <!-- ══ STATE B · PLAN ═════════════════════════════════ -->
   <main id="planScreen" hidden>
-    <button class="summary-bar roll" id="summaryBar" style="--d:0s">
+    <button class="summary-bar roll" id="summaryBar" style="--d:0s" aria-label="Back to setup">
+      <svg class="backic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       <span class="dot"></span>
       <span class="meta" id="summaryMeta"></span>
-      <span class="edit">Edit <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></span>
+      <span class="newpill">New session</span>
     </button>
 
     <section class="session-head roll" id="planHead" style="--d:.06s"></section>
@@ -810,7 +829,7 @@ function getHistory() {
 function saveToHistory(entry) {
   const h = getHistory();
   h.unshift(entry);
-  localStorage.setItem('pp_history', JSON.stringify(h.slice(0, 12)));
+  localStorage.setItem('pp_history', JSON.stringify(h.slice(0, 20)));
   renderShelf();
 }
 function clamp(k, v) {
@@ -820,6 +839,7 @@ function clamp(k, v) {
 }
 
 // ── Ask screen rendering ──────────────────────────────────
+let showAllHistory = false;
 function renderShelf() {
   const h = getHistory();
   const shelf = $('recentShelf');
@@ -827,15 +847,21 @@ function renderShelf() {
     shelf.innerHTML = '<div class="shelf-empty"><span>🎾</span> Your first session starts here</div>';
     return;
   }
-  shelf.innerHTML = '<div class="shelf">' + h.map((e, i) => {
+  const visible = showAllHistory ? h : h.slice(0, 3);
+  const replayIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>';
+  shelf.innerHTML = visible.map((e, i) => {
     const p = personaById(e.inputs.personaId);
-    return `<button class="shelf-chip" data-i="${i}">
-      <span class="dot" style="background:${p.color}; color:${p.color}"></span>
-      <span>${esc(e.plan.title)}</span>
-      <span class="when">${esc(e.when)}</span>
+    return `<button class="past-card" data-i="${i}" style="--pcol:${p.color}">
+      <div class="pc-main">
+        <div class="pc-title">${esc(e.plan.title)}</div>
+        <div class="pc-meta">${esc(metaLine(e.inputs))} · ${esc(e.when)}</div>
+      </div>
+      <span class="pc-replay">${replayIcon} Redo</span>
     </button>`;
-  }).join('') + '</div>';
-  shelf.querySelectorAll('.shelf-chip').forEach((btn) => {
+  }).join('') + (h.length > 3
+    ? `<button class="show-all" id="showAllBtn">${showAllHistory ? 'Show fewer' : `Show all ${h.length} sessions`}</button>`
+    : '');
+  shelf.querySelectorAll('.past-card').forEach((btn) => {
     btn.addEventListener('click', () => {
       const e = getHistory()[Number(btn.dataset.i)];
       if (!e) return;
@@ -845,6 +871,8 @@ function renderShelf() {
       showPlan(false);
     });
   });
+  const sa = $('showAllBtn');
+  if (sa) sa.addEventListener('click', () => { showAllHistory = !showAllHistory; renderShelf(); });
 }
 
 function renderPersonas() {
@@ -983,6 +1011,7 @@ async function requestPlan(payload) {
     });
     hideOverlay();
     showPlan(true);
+    toast('Saved to Past sessions');
   } catch (err) {
     showError(err.message || 'Something went wrong.');
   }
