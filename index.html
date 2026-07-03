@@ -86,7 +86,7 @@
   [hidden] { display: none !important; }
 
   /* ── The glass recipe ─────────────────────────────────── */
-  .inputs, .block, .card, .session-head, .sheet, .past-card, .tpl-card, .shelf-empty {
+  .inputs, .block, .card, .session-head, .sheet, .past-card, .tpl-mini, .shelf-empty {
     background: linear-gradient(180deg, var(--glass-hi), var(--glass-lo));
     border: 1px solid var(--stroke);
     box-shadow: var(--inner-light), var(--shadow-card);
@@ -182,29 +182,56 @@
   }
   .show-all:hover { color: var(--gold-hi); border-color: color-mix(in srgb, var(--gold) 40%, transparent); }
 
-  /* ── Quick picks: one template per coach ──────────────── */
-  .tpl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .tpl-card {
-    border-radius: var(--r-card); padding: 14px 14px 13px;
-    color: var(--chalk); font: inherit; text-align: left; cursor: pointer;
-    position: relative; overflow: hidden;
-    transition: transform .16s ease, border-color .16s ease, box-shadow .2s ease;
+  /* ── Quick pick: template card riding under each coach ── */
+  .tpl-mini {
+    width: 100%; display: flex; align-items: center; gap: 11px;
+    border-radius: 13px; border-left: 3px solid var(--pc);
+    padding: 11px 13px; color: var(--chalk); font: inherit; text-align: left; cursor: pointer;
+    transition: transform .16s ease, border-color .16s ease;
   }
-  .tpl-card::before { /* soft persona glow in the corner */
-    content: ""; position: absolute; top: -34px; right: -34px; width: 110px; height: 110px;
-    border-radius: 50%; background: radial-gradient(circle, var(--pcol) 0%, transparent 70%);
-    opacity: .14; pointer-events: none;
+  .tpl-mini:hover { border-color: color-mix(in srgb, var(--pc) 50%, transparent); border-left-color: var(--pc); }
+  .tpl-mini:active { transform: scale(.97); }
+  .tpl-mini .tm-main { flex: 1; min-width: 0; }
+  .tpl-mini .qp { font-size: 9px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--pc); }
+  .tpl-mini .t { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tpl-mini .m { font-size: 11px; color: var(--chalk-faint); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .tpl-mini .go {
+    flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center;
+    border-radius: 50%; color: var(--pc);
+    border: 1px solid color-mix(in srgb, var(--pc) 40%, transparent);
   }
-  .tpl-card:hover { border-color: color-mix(in srgb, var(--pcol) 55%, transparent); }
-  .tpl-card:active { transform: scale(.97); }
-  .tpl-card .tpl-persona {
-    display: flex; align-items: center; gap: 5px;
-    font-size: 9.5px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase;
-    color: var(--pcol);
+  .tpl-mini .go svg { width: 13px; height: 13px; }
+
+  /* ── Menu button + Past sessions drawer ───────────────── */
+  .menu-btn {
+    position: absolute; top: 16px; left: 16px; z-index: 6;
+    width: 42px; height: 42px; display: grid; place-items: center;
+    border-radius: 14px; color: var(--chalk); cursor: pointer;
+    background: linear-gradient(180deg, var(--glass-hi), var(--glass-lo));
+    border: 1px solid var(--stroke);
+    box-shadow: var(--inner-light);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    transition: transform .15s ease, border-color .16s ease;
   }
-  .tpl-card .tpl-persona svg { width: 13px; height: 13px; }
-  .tpl-card .tpl-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 600; line-height: 1.2; margin: 7px 0 5px; min-height: 38px; }
-  .tpl-card .tpl-meta { font-size: 11.5px; color: var(--chalk-faint); font-variant-numeric: tabular-nums; }
+  .menu-btn:active { transform: scale(.92); }
+  .menu-btn svg { width: 19px; height: 19px; }
+  .drawer-veil {
+    position: fixed; inset: 0; z-index: 74; background: rgba(3,12,8,.68);
+    backdrop-filter: blur(4px); opacity: 0; transition: opacity .22s ease;
+  }
+  .drawer-veil.open { opacity: 1; }
+  .drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 75;
+    width: min(84vw, 340px); overflow-y: auto; overscroll-behavior: contain;
+    background: linear-gradient(180deg, rgba(16,40,29,.96), rgba(8,26,19,.97));
+    border-right: 1px solid var(--stroke);
+    padding: 26px 18px calc(26px + env(safe-area-inset-bottom));
+    transform: translateX(-105%); transition: transform .3s cubic-bezier(.22,.9,.3,1);
+    box-shadow: 24px 0 60px rgba(3,12,8,.6);
+  }
+  .drawer.open { transform: none; }
+  .drawer h3 { font-size: 21px; margin-bottom: 2px; }
+  .drawer .sub { font-family: 'Fraunces', serif; font-style: italic; font-size: 13px; color: var(--chalk-muted); margin-bottom: 18px; }
   .shelf-empty {
     display: flex; align-items: center; gap: 10px; color: var(--chalk-muted);
     font-family: 'Fraunces', serif; font-style: italic; font-size: 14.5px;
@@ -220,8 +247,9 @@
     perspective: 900px;
   }
   .personas::-webkit-scrollbar { display: none; }
+  .pslide { flex: 0 0 76%; scroll-snap-align: center; display: flex; flex-direction: column; gap: 10px; }
   .persona {
-    flex: 0 0 76%; scroll-snap-align: center;
+    width: 100%;
     background: linear-gradient(180deg, var(--glass-hi), var(--glass-lo));
     border: 1px solid var(--stroke);
     box-shadow: var(--inner-light), var(--shadow-card);
@@ -651,19 +679,14 @@
         <line x1="195" y1="20" x2="195" y2="182" pathLength="1" stroke-width="2.4"/>
       </svg>
       <span class="rally"></span>
+      <button class="menu-btn" id="menuBtn" aria-label="Past sessions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="19" y2="18"/></svg>
+      </button>
       <div class="overline">Centre Court Coaching</div>
       <h1>PracticePal</h1>
       <div class="rule"></div>
       <p>Tonight's plan, sorted.</p>
     </header>
-
-    <div id="recentWrap">
-      <div class="section-label">Past sessions</div>
-      <div id="recentShelf"></div>
-    </div>
-
-    <div class="section-label">Quick picks — one per coach</div>
-    <div class="tpl-grid" id="tplGrid"></div>
 
     <div class="section-label">Who's coaching tonight?</div>
     <div class="personas" id="personaRow"></div>
@@ -741,6 +764,14 @@
     </div>
   </main>
 </div>
+
+<!-- past sessions drawer -->
+<div class="drawer-veil" id="drawerVeil" hidden></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <h3 class="fraunces">Past sessions</h3>
+  <p class="sub">Tap one to replay it — exactly as it was.</p>
+  <div id="recentShelf"></div>
+</aside>
 
 <!-- remix sheet -->
 <div class="sheet-veil" id="sheetVeil" hidden></div>
@@ -1126,7 +1157,6 @@ function clamp(k, v) {
 }
 
 // ── Ask screen rendering ──────────────────────────────────
-let showAllHistory = false;
 function renderShelf() {
   const h = getHistory();
   const shelf = $('recentShelf');
@@ -1134,9 +1164,8 @@ function renderShelf() {
     shelf.innerHTML = '<div class="shelf-empty"><span>🎾</span> Your first session starts here</div>';
     return;
   }
-  const visible = showAllHistory ? h : h.slice(0, 3);
   const replayIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>';
-  shelf.innerHTML = visible.map((e, i) => {
+  shelf.innerHTML = h.map((e, i) => {
     const p = personaById(e.inputs.personaId);
     return `<button class="past-card" data-i="${i}" style="--pcol:${p.color}">
       <div class="pc-main">
@@ -1145,9 +1174,7 @@ function renderShelf() {
       </div>
       <span class="pc-replay">${replayIcon} Redo</span>
     </button>`;
-  }).join('') + (h.length > 3
-    ? `<button class="show-all" id="showAllBtn">${showAllHistory ? 'Show fewer' : `Show all ${h.length} sessions`}</button>`
-    : '');
+  }).join('');
   shelf.querySelectorAll('.past-card').forEach((btn) => {
     btn.addEventListener('click', () => {
       const e = getHistory()[Number(btn.dataset.i)];
@@ -1155,26 +1182,61 @@ function renderShelf() {
       state.plan = e.plan;
       state.sessionInputs = e.inputs;
       state.currentBlock = -1;
+      closeDrawer();
       showPlan(false);
     });
   });
-  const sa = $('showAllBtn');
-  if (sa) sa.addEventListener('click', () => { showAllHistory = !showAllHistory; renderShelf(); });
 }
 
-function renderTemplates() {
-  const grid = $('tplGrid');
-  grid.innerHTML = TEMPLATES.map((t, i) => {
-    const p = personaById(t.inputs.personaId);
-    return `<button class="tpl-card" data-i="${i}" style="--pcol:${p.color}">
-      <div class="tpl-persona">${ICONS[p.icon]} ${esc(p.name)}</div>
-      <div class="tpl-title">${esc(t.plan.title)}</div>
-      <div class="tpl-meta">${t.inputs.players} players · ${t.inputs.duration} min · ${esc(t.inputs.level)}</div>
-    </button>`;
+// left drawer holding the session record
+function openDrawer() {
+  $('drawerVeil').hidden = false;
+  requestAnimationFrame(() => { $('drawerVeil').classList.add('open'); $('drawer').classList.add('open'); });
+  $('drawer').setAttribute('aria-hidden', 'false');
+}
+function closeDrawer() {
+  $('drawerVeil').classList.remove('open');
+  $('drawer').classList.remove('open');
+  $('drawer').setAttribute('aria-hidden', 'true');
+  setTimeout(() => { $('drawerVeil').hidden = true; }, 250);
+}
+
+function renderPersonas() {
+  const row = $('personaRow');
+  const playIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+  row.innerHTML = PERSONAS.map((p) => {
+    const tpl = TEMPLATES.find((t) => t.inputs.personaId === p.id);
+    return `
+    <div class="pslide" style="--pc:${p.color}">
+      <button class="persona ${p.id === state.personaId ? 'selected' : ''}" data-id="${p.id}" style="--pc:${p.color}">
+        <span class="glow"></span>
+        <span class="courtline"></span>
+        <div class="picon">${ICONS[p.icon]}</div>
+        <h3>${p.name}</h3>
+        <p>${p.desc}</p>
+      </button>
+      ${tpl ? `<button class="tpl-mini" data-pid="${p.id}">
+        <div class="tm-main">
+          <div class="qp">Quick pick</div>
+          <div class="t">${esc(tpl.plan.title)}</div>
+          <div class="m">${tpl.inputs.players} players · ${tpl.inputs.duration} min · ${esc(tpl.inputs.level)}</div>
+        </div>
+        <span class="go">${playIcon}</span>
+      </button>` : ''}
+    </div>`;
   }).join('');
-  grid.querySelectorAll('.tpl-card').forEach((btn) => {
+  row.querySelectorAll('.persona').forEach((card) => {
+    card.addEventListener('click', () => {
+      state.personaId = card.dataset.id;
+      setWorldTint(personaById(card.dataset.id).color);
+      row.querySelectorAll('.persona').forEach((c) => c.classList.toggle('selected', c === card));
+      card.closest('.pslide').scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    });
+    attachTilt(card);
+  });
+  row.querySelectorAll('.tpl-mini').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const t = TEMPLATES[Number(btn.dataset.i)];
+      const t = TEMPLATES.find((x) => x.inputs.personaId === btn.dataset.pid);
       if (!t) return;
       state.plan = t.plan;
       state.sessionInputs = { ...t.inputs };
@@ -1182,29 +1244,8 @@ function renderTemplates() {
       showPlan(true);
     });
   });
-}
-
-function renderPersonas() {
-  const row = $('personaRow');
-  row.innerHTML = PERSONAS.map((p) => `
-    <button class="persona ${p.id === state.personaId ? 'selected' : ''}" data-id="${p.id}" style="--pc:${p.color}">
-      <span class="glow"></span>
-      <span class="courtline"></span>
-      <div class="picon">${ICONS[p.icon]}</div>
-      <h3>${p.name}</h3>
-      <p>${p.desc}</p>
-    </button>`).join('');
-  row.querySelectorAll('.persona').forEach((card) => {
-    card.addEventListener('click', () => {
-      state.personaId = card.dataset.id;
-      setWorldTint(personaById(card.dataset.id).color);
-      row.querySelectorAll('.persona').forEach((c) => c.classList.toggle('selected', c === card));
-      card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    });
-    attachTilt(card);
-  });
   const sel = row.querySelector('.persona.selected');
-  if (sel) requestAnimationFrame(() => sel.scrollIntoView({ block: 'nearest', inline: 'center' }));
+  if (sel) requestAnimationFrame(() => sel.closest('.pslide').scrollIntoView({ block: 'nearest', inline: 'center' }));
 }
 
 // pointer-tilt on hover-capable devices (desktop) — cards feel physical
@@ -1582,13 +1623,14 @@ function remix(variation) {
 loadDefaults();
 setWorldTint(personaById(state.personaId).color);
 renderShelf();
-renderTemplates();
 renderPersonas();
 renderSteppers();
 renderLevels();
 renderFocus();
 
 $('generateBtn').addEventListener('click', generate);
+$('menuBtn').addEventListener('click', openDrawer);
+$('drawerVeil').addEventListener('click', closeDrawer);
 $('summaryBar').addEventListener('click', backToAsk);
 $('shareBtn').addEventListener('click', share);
 $('remixBtn').addEventListener('click', openSheet);
