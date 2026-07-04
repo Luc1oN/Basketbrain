@@ -588,6 +588,15 @@
   }
   .block h3 { font-size: 19px; font-weight: 600; margin: 8px 0 6px; }
   .block .desc { font-size: 14px; color: var(--chalk-muted); }
+  .facets { margin-top: 4px; display: flex; flex-direction: column; gap: 7px; }
+  .facet { display: flex; align-items: baseline; gap: 10px; }
+  .facet-lab {
+    flex: 0 0 50px; font-size: 10px; font-weight: 700; letter-spacing: 1.3px;
+    text-transform: uppercase; color: var(--chalk-faint);
+  }
+  .facet-val { flex: 1; font-size: 14px; color: var(--chalk-muted); line-height: 1.4; }
+  .facet--target .facet-val { color: var(--gold-hi); font-weight: 600; }
+  .block.current .facet-val { color: var(--chalk); }
   .block .cue { font-family: 'Fraunces', serif; font-style: italic; font-size: 13.5px; color: var(--chalk-faint); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--stroke-soft); }
   .block .now {
     display: inline-block;
@@ -1155,64 +1164,82 @@ const TEMPLATES = [
    "focus": ""
   },
   "plan": {
-   "title": "Forehand Forge",
+   "title": "Approach & Attack Clinic",
    "timeline": [
     {
      "start": 0,
-     "end": 10,
-     "title": "Mini-Tennis Ignition",
-     "description": "Split into two pairs, one in each service box, and rally cross-court off short, cooperative feeds. Everyone hits continuously — aim for 15+ ball exchanges per pair before resetting. Switch pairs to the other box halfway through.",
-     "cue": "Soft hands, low-to-high swing path, contact out in front — wake up the stroke before we build it.",
+     "end": 8,
+     "title": "Cross-Court Wake-Up",
+     "aim": "Grooving rhythm, contact point, court feel fast",
+     "drill": "Two diagonals mini-tennis rally simultaneously, service box to service box.",
+     "cycle": "Swap diagonal partners at 4 min",
+     "target": "20 consecutive balls in per pair",
+     "cue": "Contact at hip height, short backswing, eyes on the ball not the net.",
      "diagram": "cross_court_rally"
     },
     {
-     "start": 10,
-     "end": 22,
-     "title": "Forehand Groove: Fed Reps",
-     "description": "One player hits forehands cross-court off basket feeds from the coach, aiming at a cone target deep in the corner. Rotate every 6 balls: hitter to feeder, feeder to ball-shagger, shagger to queue — all four stay involved every rotation.",
-     "cue": "Unit turn early, racquet head above the wrist at contact, brush up the back of the ball for topspin.",
+     "start": 8,
+     "end": 20,
+     "title": "Approach & Volley Feed",
+     "aim": "Groove approach shot footwork and net closure",
+     "drill": "Feeder feeds short ball → approacher steps in, hits approach down the line, closes and volleys return feed.",
+     "cycle": "Rotate feeder→approacher→return-feeder→retriever every 3 min",
+     "target": "8 clean approach+volley combos per player",
+     "cue": "Inside foot steps first, contact out front, low-to-high swing path, split-step before the volley.",
      "diagram": "fed_drill"
     },
     {
-     "start": 22,
-     "end": 34,
-     "title": "Forehand on the Move",
-     "description": "Feeder alternates wide and short balls so the hitter must split-step, adjust footwork, and strike the forehand cross-court, then recover to center. Rotate roles every 3 minutes so all 4 players cycle through hitting, feeding, and shagging.",
-     "cue": "Small adjustment steps into the ball, plant the outside foot, hit and recover — don't lunge for it.",
+     "start": 20,
+     "end": 32,
+     "title": "Depth Read Progression",
+     "aim": "Reading short vs deep to trigger attack",
+     "drill": "Feeder mixes short and deep feeds → approacher judges bounce, attacks short ones, resets on deep ones.",
+     "cycle": "Rotate same 4 roles every 3 min",
+     "target": "Correct read on 9/10 feeds",
+     "cue": "Read the bounce early — short ball, explode forward; deep ball, hold and reset.",
      "diagram": "fed_drill"
     },
     {
-     "start": 34,
-     "end": 46,
-     "title": "Live Cross-Court Pressure",
-     "description": "Split the court into deuce and ad diagonals: two simultaneous cross-court rallies running at once so all 4 are hitting live balls continuously. Each pair counts consecutive forehand-to-forehand exchanges, resetting after errors, chasing a new high score.",
-     "cue": "Same contact point every time — hip-height, arm extended, eyes on the ball through contact, not the target.",
-     "diagram": "cross_court_rally"
+     "start": 32,
+     "end": 44,
+     "title": "Live Rally Trigger",
+     "aim": "Applying approach under real rally pressure",
+     "drill": "Rally cross-court from baseline → feeder deliberately shortens one ball → receiver must recognise and attack net to finish.",
+     "cycle": "Pairs rotate on/off court every 6 min, resters feed baskets from baseline",
+     "target": "Finish 6 of 10 triggered points at net",
+     "cue": "First step diagonal not straight, close the gap fast, volley contact stays in front of the body.",
+     "diagram": "rotation_queue"
     },
     {
-     "start": 46,
+     "start": 44,
      "end": 54,
-     "title": "Feed-to-Point Forehand",
-     "description": "Coach feeds a cross-court ball to start each mini-point on the full court; players must land the first forehand in a marked deep-corner zone before the point opens up. Rotate pairs after every 2 points so everyone plays and scores.",
-     "cue": "Construct the point with that same swing path — deep and heavy first, then look to attack.",
-     "diagram": "target_zone"
+     "title": "Approach Point Play",
+     "aim": "Committing the tactic inside real points",
+     "drill": "Play out full points → any short ball must be attacked with approach and net finish, no floating back to baseline.",
+     "cycle": "Winner stays, next of 4 rotates in every 2 points",
+     "target": "First to 7 points",
+     "cue": "Commit to the net after the approach — punch the volley crisp, don't rally back.",
+     "diagram": "rotation_queue"
     },
     {
      "start": 54,
      "end": 60,
      "title": "King of the Court Finisher",
-     "description": "Singles winner-stays-on: every point must open with 3 cross-court forehands before the court goes live. Winner stays on, first to 4 points wins the game, losers rotate through queue keeping score and feeding the next ball in.",
-     "cue": "Trust the groove we built tonight — same contact, same path, now make it count.",
+     "aim": "Competitive reward for net-finish habit",
+     "drill": "Singles king-of-court, winner stays on, loser rotates off.",
+     "cycle": "Loser swaps out after every point",
+     "target": "First to 5 wins takes bragging rights",
+     "cue": "Every net finish scores a bonus point — reward the commitment, not just the winner.",
      "diagram": "king_of_court"
     }
    ],
    "rotation": {
-    "summary": "With 4 players and 1 court, roles rotate constantly between hitter, feeder, and ball-shagger so nobody stands idle, and pairs swap sides or partners every drill segment. In the final two blocks the group shifts from paired rally work to a singles queue so every player gets equal live-ball reps and match time.",
+    "summary": "With 4 players and 1 court, each drill block cycles all four through every role (feeder, hitter, return-feeder, retriever) so nobody stands idle, swapping every 2-3 minutes. In live-ball blocks, two players play while the other two feed baskets or keep score from the baseline, swapping in every 6 minutes or after every 2 points.",
     "needs_diagram": false
    },
    "finisher": {
     "title": "King of the Court Finisher",
-    "description": "Singles winner-stays-on format where every point must open with 3 cross-court forehands before players can go for winners. Winner stays on court, first to 4 points takes the game, and the queue rotates in feeding and scoring — bragging rights to whoever survives the longest reign.",
+    "description": "Singles king-of-court format: winner stays on court, loser rotates off and next player steps in immediately. Any point finished at the net with a volley or overhead scores as a bonus point on top of the normal score. First player to reach 5 total wins takes the bragging rights for the night.",
     "diagram": "king_of_court"
    }
   }
@@ -1227,56 +1254,71 @@ const TEMPLATES = [
    "focus": ""
   },
   "plan": {
-   "title": "Open Court Chess",
+   "title": "Pattern Play Tactics",
    "timeline": [
     {
      "start": 0,
      "end": 10,
-     "title": "Cross-Court Engine Warm-Up",
-     "description": "Split the court diagonally: Pair A rallies cross-court deuce-to-deuce, Pair B rallies cross-court ad-to-ad, both pairs hitting live at the same time. Cooperative rallies building to full length after 5 minutes, then pairs switch diagonals.",
-     "cue": "Hit the same ball back every time — same spin, same target, same tempo. Rhythm first, decisions later.",
+     "title": "Cross-Court Engine",
+     "aim": "Groove cross-court rhythm and court sense",
+     "drill": "4 players split into 2 pairs → simultaneous cross-court rallies (deuce pair, ad pair) → extend from service box to baseline.",
+     "cycle": "Swap diagonal partners at 5 min mark",
+     "target": "20-ball rally without unforced error",
+     "cue": "Watch the ball leave the strings before you move — read then react.",
      "diagram": "cross_court_rally"
     },
     {
      "start": 10,
-     "end": 22,
+     "end": 25,
      "title": "Cross-Court to Open the Line",
-     "description": "Two players rally live cross-court, points start with a cooperative feed then played out; a cross-court ball forces the opponent wide, and the reward is hitting behind them down the line. The other two feed the first ball and shag, rotating on every 3 points so all four play both roles.",
-     "cue": "Cross-court is your safety net, down-the-line is your reward — only go there once you've pulled them off the court.",
+     "aim": "Construct a point to create a down-the-line opening",
+     "drill": "2v2 baseline points → both pairs rally cross-court only until a short/high ball appears → one player rips down the line to finish.",
+     "cycle": "Rotate partners every 7-8 min, 2 rotations",
+     "target": "5 down-the-line winners per pair",
+     "cue": "Patience cross-court, then pounce — down the line is a reward, not a habit.",
      "diagram": "cross_court_rally"
     },
     {
-     "start": 22,
-     "end": 34,
-     "title": "Serve+1 Patterns",
-     "description": "Server hits a serve then must construct the point with a planned 3rd ball into the open space; returner tries to neutralize back to the middle. Feeder/net player from the non-hitting pair feeds new balls to keep points flowing fast; rotate server-returner-feeder-shagger every 3 minutes so everyone serves and returns.",
-     "cue": "Decide your serve+1 target before you toss — wide serve, ball comes back crosscourt, you finish inside-out.",
-     "diagram": "fed_drill"
-    },
-    {
-     "start": 34,
-     "end": 46,
-     "title": "Doubles Formation Live Points",
-     "description": "Full doubles points with a tactical constraint: the serving team must get to an up-and-back formation by the 3rd shot, while the returning team stays two-back until they see a short ball. Play to 4 points then rotate partners so all combinations are tried.",
-     "cue": "Watch the ball, not your partner — your position on court should answer to where the ball is, not where your feet feel comfortable.",
+     "start": 25,
+     "end": 38,
+     "title": "Serve+1 Doubles Patterns",
+     "aim": "Train first-strike tactics and doubles coverage",
+     "drill": "Serve team serves wide/body/T then hits a planned serve+1 to set the net player → return team tries to neutralize with a low cross-court return.",
+     "cycle": "Rotate server every 2 points, switch sides every 4",
+     "target": "Serve team wins outright 3 of 10 points",
+     "cue": "The serve is the setup, not the finish — know your plus-one before you toss.",
      "diagram": "doubles_formation"
     },
     {
-     "start": 46,
+     "start": 38,
+     "end": 50,
+     "title": "Approach, Volley, Pass",
+     "aim": "Sharpen approach selection and net-closing decisions",
+     "drill": "Feeder feeds a short ball → receiver approaches down the line then closes net → baseline partner attempts a cross-court passing shot.",
+     "cycle": "Rotate feeder/approacher/passer every 3 min, all 4 cycle through",
+     "target": "Approacher wins net exchange 2 of 3 reps",
+     "cue": "Approach where you're strong, split-step, then read the pass before it's hit.",
+     "diagram": "fed_drill"
+    },
+    {
+     "start": 50,
      "end": 60,
-     "title": "King of the Court",
-     "description": "Singles winner-stays-on format: first to 4 points wins and stays, loser rotates off and challenger comes on. Bonus point awarded any time a player wins a rally by hitting an approach shot down the line after opening the court cross-court — rewarding the pattern all session was built on.",
-     "cue": "You've earned the right to go down the line all night — now prove you know when.",
+     "title": "Kings of the Baseline",
+     "aim": "Compete using the patterns trained tonight",
+     "drill": "Doubles king-of-court: winners stay on → new pair challenges → bonus point awarded for any rally won via a cross-court-then-down-the-line pattern.",
+     "cycle": "Losing pair rotates off after each game to 4 points",
+     "target": "First pair to 11 total points wins",
+     "cue": "Play the pattern, not the panic shot — the line only opens after you've earned it.",
      "diagram": "king_of_court"
     }
    ],
    "rotation": {
-    "summary": "Players work in shifting pairs of two on court at all times; the two players not rallying are always feeding balls, shagging, or keeping score — never idle. Roles (hitter, feeder, server, returner) rotate every 3-4 minutes so all four players get equal reps in every pattern by the end of the session.",
+    "summary": "All 4 players are on court together for every block, split into two shifting pairs so nobody is ever idle. Roles (feeder, approacher, server, partner) rotate on short timers within each drill, and partner pairings reshuffle between blocks so everyone plays with and against everyone.",
     "needs_diagram": false
    },
    "finisher": {
-    "title": "King of the Court",
-    "description": "Singles winner-stays-on: first to 4 points wins and stays on, next challenger rotates in immediately so no one waits more than one game. Bonus point for winning a point by opening the court cross-court then finishing down the line — the session's whole theme cashed in for glory and bragging rights.",
+    "title": "Kings of the Baseline",
+    "description": "Doubles king-of-the-court: one pair stays on court, the challenging pair rotates in after each game to 4 points. Any point won by rallying cross-court and then finishing down the line earns a bonus point, rewarding the tactical patterns trained all session. First pair to reach 11 total points takes bragging rights for the night.",
     "diagram": "king_of_court"
    }
   }
@@ -1291,56 +1333,82 @@ const TEMPLATES = [
    "focus": ""
   },
   "plan": {
-   "title": "Corner Crusher Grind",
+   "title": "Corner Blitz Grind",
    "timeline": [
     {
      "start": 0,
      "end": 8,
-     "title": "Mini-Tennis Diagonal Warm-Up",
-     "description": "Split into 2 pairs, each pair rallies cross-court inside the service boxes on opposite diagonals at the same time. Count consecutive controlled shots as a team, restart at 10. Switch diagonals halfway through so everyone hits both directions.",
-     "cue": "Soft hands, quick feet — bounce on your toes between every ball.",
+     "title": "Cross-Court Fire-Up",
+     "aim": "Wake up legs, groove early rally rhythm",
+     "drill": "Two pairs rally diagonally, deuce-to-deuce and ad-to-ad simultaneously, groundstrokes only.",
+     "cycle": "Swap diagonals (deuce↔ad) at halfway mark",
+     "target": "20-ball rally without an error",
+     "cue": "Split step every ball — feet alive, not flat!",
      "diagram": "cross_court_rally"
     },
     {
      "start": 8,
-     "end": 24,
-     "title": "Cross-Court Grinder",
-     "description": "One pair rallies full-court cross-court (deuce-to-deuce), target 20-ball rallies before resetting; the other two feed retrieved balls back in from the fence to keep the rally alive with zero dead time. Rotate pairs every 4 minutes so all 4 get full rally time and feeder reps.",
-     "cue": "Split step every single shot — legs never stop moving.",
+     "end": 20,
+     "title": "Cross-Court Depth Battle",
+     "aim": "Build cross-court consistency and controlled depth",
+     "drill": "Same diagonal rallies, target cones in deep corners, players push each other past service line.",
+     "cycle": "Rotate partner every 4 min, 3 rotations total",
+     "target": "15 consecutive balls past service line",
+     "cue": "Legs load, drive up — don't arm it, push through!",
      "diagram": "cross_court_rally"
     },
     {
-     "start": 24,
-     "end": 36,
-     "title": "Down-the-Line Discipline",
-     "description": "Same rotation structure, now hitting down the line into a target zone 3 feet inside the sideline. Rally pair aims for 15 clean reps in the zone before the next pair swaps in; non-hitters feed extra balls from the baseline corner to keep ball count high.",
-     "cue": "Recover to center after every ball — no lazy feet on the line shot.",
+     "start": 20,
+     "end": 32,
+     "title": "Down-the-Line Grind",
+     "aim": "Sharpen straight-ball accuracy and shoulder turn",
+     "drill": "Split court into two sideline lanes, pairs rally down the line only.",
+     "cycle": "Rotate lanes and partners every 4 min",
+     "target": "12 balls in a row down the line",
+     "cue": "Recover to center after every shot, no standing flat-footed!",
      "diagram": "down_the_line_rally"
     },
     {
-     "start": 36,
-     "end": 48,
-     "title": "Rapid-Fire Feed Reps",
-     "description": "Coach basket-feeds each player in turn: 15 fast-paced groundstrokes, then 10 volleys at net, targeting max contacts per minute. Waiting players collect balls into buckets and immediately step in when it's their turn — no standing around.",
-     "cue": "Split, punch, recover — treat every feed like match ball.",
-     "diagram": "fed_drill"
+     "start": 32,
+     "end": 44,
+     "title": "Corner-to-Corner Recovery",
+     "aim": "Train recovery speed and shot placement under fatigue",
+     "drill": "Feeder alternates corners from basket → hitter sprints and hits into marked zones, others feed and shag.",
+     "cycle": "Rotate hitter every 3 min, all 4 through once",
+     "target": "10 zone-landing balls per turn",
+     "cue": "Explode, hit, recover — legs never stop moving!",
+     "diagram": "target_zone"
     },
     {
-     "start": 48,
+     "start": 44,
+     "end": 52,
+     "title": "Fast Hands Net Wars",
+     "aim": "Sharpen reflex volleys and net recovery position",
+     "drill": "Two players volley-volley live at the net, high pace, short court boundaries.",
+     "cycle": "Rotate pairs every 2 min, everyone gets 2 turns",
+     "target": "First to 10 volley points per round",
+     "cue": "Hands quiet, split before every punch — react, don't guess!",
+     "diagram": "rotation_queue"
+    },
+    {
+     "start": 52,
      "end": 60,
-     "title": "King of the Court Finisher",
-     "description": "Singles winner-stays-on: rally to 4 points, loser rotates off and next challenger steps in immediately from the queue. Track total wins per player to crown the King of the Court.",
-     "cue": "Sprint the split step — legs decide who stays king.",
+     "title": "King of the Court",
+     "aim": "Compete live, close session with maximum intensity",
+     "drill": "Winner-stays-on singles → challenger rotates in from queue after every point-game.",
+     "cycle": "Loser rotates out, next challenger in after each game",
+     "target": "First to 4 points wins, crown king by minute 60",
+     "cue": "Empty the tank — every ball like it's match point!",
      "diagram": "king_of_court"
     }
    ],
    "rotation": {
-    "summary": "With 4 players and 1 court, players rotate in pairs between active rally and active feeding roles every 3-4 minutes so nobody is idle; in the finisher, players queue as challengers so each gets continuous reps between points.",
+    "summary": "With 4 players and 1 court, players work in two pairs for the rally blocks, swapping partners and lanes every 3-4 minutes so all combinations get equal reps. During fed and volley blocks, non-hitting players actively feed, shag, or keep count rather than standing idle. The finisher runs as a continuous winner-stays-on singles queue so no one waits more than one game.",
     "needs_diagram": false
    },
    "finisher": {
     "title": "King of the Court",
-    "description": "Singles winner-stays-on format: play out points to 4, winner stays, loser goes to back of the queue and next player steps in immediately. Whoever has the most wins when time expires is crowned King of the Court — bragging rights on the line.",
+    "description": "Singles winner-stays-on format: two players battle to 4 points while the other two are queued as next challengers, keeping score and feeding balls back fast to keep pace high. Loser rotates to the back of the queue, winner stays to face the next challenger. Whoever holds the court when time expires at 60 minutes is crowned King of the Grind — bragging rights until next session.",
     "diagram": "king_of_court"
    }
   }
@@ -1355,57 +1423,72 @@ const TEMPLATES = [
    "focus": ""
   },
   "plan": {
-   "title": "Chaos Court Kings",
+   "title": "Throne of the Court",
    "timeline": [
     {
      "start": 0,
      "end": 8,
-     "title": "Mini-Tennis Mayhem Warm-Up",
-     "description": "Split the court into two diagonal service-box mini-tennis games, two players per box, cross-court only. Count consecutive shots aloud, reset if you hit the tape or net cord. Switch partners at 4 minutes so everyone's paired with someone new.",
-     "cue": "Racquets up, chins up — first ball's already flying, let's go!",
+     "title": "Mini-Tennis Mayhem",
+     "aim": "Groove touch and rally consistency fast",
+     "drill": "2v2 mini-tennis cross-court rally inside service boxes, cooperative continuous hitting",
+     "cycle": "swap partners every 2 min",
+     "target": "rally 10+ shots before reset",
+     "cue": "Racquets up, smiles on — balls in by minute two!",
      "diagram": "cross_court_rally"
     },
     {
      "start": 8,
      "end": 20,
-     "title": "Target Zone Challenge",
-     "description": "Mark two 4ft target squares in the deep deuce and ad corners. Two players rally cross-court aiming for the zones — 2 points for a target hit, 1 for any ball in play, first to 11 wins. The other two feed balls back in and keep score loudly, then swap roles at 6 minutes so everyone gets a full round hitting.",
-     "cue": "Paint the corners, not the fence — make it count double!",
+     "title": "Target Zone Duel",
+     "aim": "precision groundstrokes under game pressure",
+     "drill": "1v1 half-court points → cones mark bonus zones, hit into zone scores 2, else 1",
+     "cycle": "winner stays on, challenger rotates every 3 min, waiting pair feeds & scores",
+     "target": "first to 7 points wins duel",
+     "cue": "Paint the corner, own the crown!",
      "diagram": "target_zone"
     },
     {
      "start": 20,
-     "end": 32,
-     "title": "Doubles Attack Drill",
-     "description": "Play live doubles points with one team up-and-back and the other two-back, resetting after every point to reinforce shape. Rotate formations every 3 points so all four players experience both roles. Track cumulative points won per team on a mini scoreboard.",
-     "cue": "Own your zone — if it bounces near you, it's yours!",
+     "end": 34,
+     "title": "Poach Party",
+     "aim": "doubles positioning and net poaching instincts",
+     "drill": "2v2 live points → server team up-back, receivers two-back, poach whenever possible",
+     "cycle": "switch formations every 4 min, rotate partners at end",
+     "target": "first team to 4 games",
+     "cue": "See it, poach it, own the net!",
      "diagram": "doubles_formation"
     },
     {
-     "start": 32,
-     "end": 44,
-     "title": "King of the Court Shootout",
-     "description": "Singles, winner-stays-on, first to 4 points wins the throne. The two waiting players aren't idle — one feeds balls to restart rallies quickly, the other keeps score and heckles. Losers rotate straight back in as feeders for the next match.",
-     "cue": "Defend that throne like your snacks depend on it!",
+     "start": 34,
+     "end": 46,
+     "title": "King of the Ladder",
+     "aim": "competitive singles play, fast mental reset",
+     "drill": "singles king-of-court → winner stays, loser rotates off, waiting player feeds balls in",
+     "cycle": "rotate after each mini-game, first to 4 points, all four cycle roles",
+     "target": "crown decided after 3 rotations",
+     "cue": "Stay on top or step aside — no mercy!",
      "diagram": "king_of_court"
     },
     {
-     "start": 44,
+     "start": 46,
      "end": 60,
-     "title": "Golden Point Tiebreak Ladder",
-     "description": "Doubles tiebreak to 7, partners rotating every 4 points so everyone plays with and against everyone. Any point won from break point counts as a 'Golden Point' worth double. Final scores crown the night's Champions of the Court, bragging rights guaranteed until next session.",
-     "cue": "Golden points, golden glory — go get greedy!",
-     "diagram": "doubles_formation"
+     "title": "Tiebreak Throne",
+     "aim": "high-pressure scoring finale, crown champion",
+     "drill": "singles tiebreak ladder → first to 7 stays on as 'king', handicap points for lower seed",
+     "cycle": "loser swaps with feeder/scorer immediately, continuous rotation",
+     "target": "most crowns wins bragging rights",
+     "cue": "Winner stays, loser buys the water bottles!",
+     "diagram": "king_of_court"
     }
    ],
    "rotation": {
-    "summary": "With 4 players on 1 court, every block pairs two players hitting live while the other two feed, score, or rotate in as partners — nobody stands still for more than a few seconds. Roles and partners flip on a strict timer within each block so total court time and ball contacts stay even across all four players.",
+    "summary": "With one court and four players, two always play while the other two feed balls, keep score, or wait as next challenger — nobody stands idle. Roles cycle every 2-4 minutes or after each mini-game so everyone gets equal hitting time across all blocks, ending in a full king-of-court rotation for the finale.",
     "needs_diagram": false
    },
    "finisher": {
-    "title": "Golden Point Tiebreak Ladder",
-    "description": "Doubles tiebreak to 7, with partners rotating every 4 points so all combinations get tested. Any point won from break point is a 'Golden Point' worth double value, adding chaos and drama to the finish. The highest cumulative score crowns the night's Champions of the Court — pure bragging rights on the line.",
-    "diagram": "doubles_formation"
+    "title": "Tiebreak Throne",
+    "description": "Singles tiebreak ladder where the first player to 7 points stays on court as reigning 'king,' with a handicap of bonus points given to whoever has won fewer duels tonight. Loser immediately swaps out for the next challenger, keeping the action continuous until time runs out. Whoever holds the throne last takes bragging rights (and skips water duty).",
+    "diagram": "king_of_court"
    }
   }
  }
@@ -1905,6 +1988,23 @@ function fmtRange(b) {
   return Number.isFinite(s) && Number.isFinite(e) ? `${s}–${e}` : '';
 }
 
+// Structured facets (Aim/Drill/Cycle/Target) — falls back to the old flat
+// "description" paragraph for anything saved before this existed.
+function renderFacets(b) {
+  if (b.aim || b.drill) {
+    const rows = [
+      ['Aim', b.aim, false],
+      ['Drill', b.drill, false],
+      ['Cycle', b.cycle, false],
+      ['Target', b.target, true],
+    ].filter(([, val]) => val);
+    return `<div class="facets">${rows.map(([lab, val, isTarget]) => `
+      <div class="facet${isTarget ? ' facet--target' : ''}"><span class="facet-lab">${esc(lab)}</span><span class="facet-val">${esc(val)}</span></div>
+    `).join('')}</div>`;
+  }
+  return b.description ? `<div class="desc">${esc(b.description)}</div>` : '';
+}
+
 // scroll-triggered reveal for plan content
 const revealer = new IntersectionObserver((entries) => {
   entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('in'); revealer.unobserve(en.target); } });
@@ -1949,7 +2049,7 @@ function showPlan(animate) {
         ${diagBtn(b.diagram)}
       </div>
       <h3>${esc(b.title)}</h3>
-      <div class="desc">${esc(b.description)}</div>
+      ${renderFacets(b)}
       ${b.cue ? `<div class="cue">"${esc(b.cue)}"</div>` : ''}
     </div>`).join('');
   $('timeline').querySelectorAll('.block').forEach((el) => {
@@ -2020,6 +2120,14 @@ function backToAsk() {
 }
 
 // ── Share ─────────────────────────────────────────────────
+function blockText(b) {
+  if (b.aim || b.drill) {
+    return [b.aim, b.drill, b.cycle ? `Cycle: ${b.cycle}` : null, b.target ? `Target: ${b.target}` : null]
+      .filter(Boolean).join(' — ');
+  }
+  return b.description || '';
+}
+
 function planAsText() {
   const plan = state.plan, inp = state.sessionInputs;
   const lines = [
@@ -2029,7 +2137,7 @@ function planAsText() {
   ];
   (plan.timeline || []).forEach((b) => {
     lines.push(`*${fmtRange(b)}* — ${b.title}`);
-    lines.push(b.description);
+    lines.push(blockText(b));
     lines.push('');
   });
   if (plan.rotation?.summary) { lines.push(`🔄 Rotation: ${plan.rotation.summary}`); lines.push(''); }
