@@ -732,9 +732,18 @@
   .diag-court-rect { fill: rgba(99,181,127,0.08); stroke: rgba(247,243,232,0.4); stroke-width: 1.5; }
   .diag-court-line { stroke: rgba(247,243,232,0.55); stroke-width: 2; stroke-dasharray: 4 4; }
   .diag-court-inner { fill: none; stroke: rgba(247,243,232,0.26); stroke-width: 1; }
-  .diag-dot { fill: var(--p); }
-  .diag-dot-dim { fill: var(--chalk-faint); opacity: .5; }
-  .diag-feeder { fill: none; stroke: var(--p); stroke-width: 2; }
+  /* numbered players: a group (circle + label) so the number rides along
+     when the player animates via offset-path, same trick as the ball */
+  .diag-player { offset-rotate: 0deg; }
+  .diag-player circle { fill: var(--p); }
+  .diag-player text {
+    fill: #08211A; font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 800;
+    text-anchor: middle; pointer-events: none;
+  }
+  .diag-player--dim circle { fill: var(--chalk-faint); opacity: .6; }
+  .diag-player--dim text { fill: rgba(8,33,26,.8); }
+  .diag-feeder rect { fill: none; stroke: var(--p); stroke-width: 2; }
+  .diag-feeder text { fill: var(--p); font-family: 'Inter', sans-serif; font-size: 9px; font-weight: 800; text-anchor: middle; }
   .diag-arrow { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 5 5; opacity: .85; }
   .diag-target { fill: color-mix(in srgb, var(--p) 22%, transparent); stroke: var(--p); stroke-width: 1.5; stroke-dasharray: 3 3; }
   .diag-ball {
@@ -742,8 +751,11 @@
     offset-rotate: 0deg;
   }
   .diag-ball.path-diag { offset-path: path('M 105 42 L 215 118'); animation: diagBallMove 2.6s ease-in-out infinite alternate; }
+  .diag-ball.path-diag2 { offset-path: path('M 105 118 L 215 42'); animation: diagBallMove 2.6s ease-in-out infinite alternate; }
   .diag-ball.path-straight { offset-path: path('M 105 42 L 215 42'); animation: diagBallMove 2.2s ease-in-out infinite alternate; }
+  .diag-ball.path-king { offset-path: path('M 105 80 L 215 80'); animation: diagBallMove 2.2s ease-in-out infinite alternate; }
   .diag-ball.path-feed { offset-path: path('M 105 118 Q 160 55 215 42'); animation: diagBallFeed 2.4s cubic-bezier(.4,0,.4,1) infinite; }
+  .diag-ball.path-shot { offset-path: path('M 105 42 L 215 118'); animation: diagBallFeed 2.6s cubic-bezier(.4,0,.4,1) infinite; }
   @keyframes diagBallMove { from { offset-distance: 0%; } to { offset-distance: 100%; } }
   @keyframes diagBallFeed {
     0% { offset-distance: 0%; opacity: 0; }
@@ -751,13 +763,42 @@
     92% { opacity: 1; }
     100% { offset-distance: 100%; opacity: 0; }
   }
+  /* player movement — hit-and-recover shuffles, queue steps, the poach run.
+     diagBallMove is reused for out-and-back (alternate) movement; delays are
+     set per pattern so players meet the ball on time. */
+  @keyframes diagNudge { from { offset-distance: 0%; } to { offset-distance: 22%; } }
+  @keyframes diagMeet { 0%, 40% { offset-distance: 0%; } 88%, 100% { offset-distance: 100%; } }
+  .move-recover-a { offset-path: path('M 105 42 L 93 70'); animation: diagBallMove 2.6s ease-in-out infinite alternate; }
+  .move-recover-b { offset-path: path('M 215 118 L 227 90'); animation: diagBallMove 2.6s ease-in-out infinite alternate; animation-delay: -2.6s; }
+  .move-line-a { offset-path: path('M 105 42 L 105 68'); animation: diagBallMove 2.2s ease-in-out infinite alternate; }
+  .move-line-b { offset-path: path('M 215 42 L 215 68'); animation: diagBallMove 2.2s ease-in-out infinite alternate; animation-delay: -2.2s; }
+  .move-hitter { offset-path: path('M 238 66 L 215 42'); animation: diagMeet 2.4s cubic-bezier(.4,0,.4,1) infinite; }
+  .move-target { offset-path: path('M 105 42 L 93 70'); animation: diagBallMove 1.3s ease-in-out infinite alternate; }
+  .move-rot-1 { offset-path: path('M 105 42 Q 160 24 215 42'); }
+  .move-rot-2 { offset-path: path('M 215 42 Q 233 80 215 118'); }
+  .move-rot-3 { offset-path: path('M 215 118 Q 160 136 105 118'); }
+  .move-rot-4 { offset-path: path('M 105 118 Q 87 80 105 42'); }
+  .move-rot-1, .move-rot-2, .move-rot-3, .move-rot-4 { animation: diagNudge 2.2s ease-in-out infinite alternate; }
+  .move-queue-in { offset-path: path('M 318 52 Q 285 58 252 72'); animation: diagNudge 2.6s ease-in-out infinite alternate; }
+  .move-queue-up { offset-path: path('M 318 96 L 318 52'); animation: diagNudge 2.6s ease-in-out infinite alternate; }
+  .move-poach { offset-path: path('M 135 56 Q 148 64 158 76'); animation: diagBallMove 2.6s ease-in-out infinite alternate; animation-delay: -1.3s; }
+  /* scene-spec animations: offset-paths arrive inline per element (computed
+     from the drill's scene), these classes carry timing only */
+  .anim-rally { animation: diagBallMove 2.4s ease-in-out infinite alternate; }
+  .anim-fade { animation: diagBallFeed 2.4s cubic-bezier(.4,0,.4,1) infinite; }
+  .anim-move { animation: diagBallMove 2.4s ease-in-out infinite alternate; }
+  .anim-move-alt { animation: diagBallMove 2.4s ease-in-out infinite alternate; animation-delay: -2.4s; }
   .diag-caption { margin-top: 12px; font-size: 13.5px; color: var(--chalk-muted); text-align: center; }
-  /* static echo of the ball's route, for reduced motion — hidden by default,
-     swapped in for the moving ball so direction still reads without motion */
+  /* static echoes of moving routes. The ball echo swaps in for the moving
+     ball under reduced motion; movement echoes stay faintly visible always
+     so the running line is legible mid-animation too. */
   .diag-arrow-echo { fill: none; stroke: var(--ball); stroke-width: 2; stroke-dasharray: 5 5; opacity: 0; }
+  .diag-move-echo { fill: none; stroke: var(--chalk-faint); stroke-width: 1.5; stroke-dasharray: 2 4; opacity: .35; }
   @media (prefers-reduced-motion: reduce) {
     .diag-ball { display: none !important; }
     .diag-arrow-echo { opacity: .9; }
+    .diag-player { animation: none !important; }
+    .diag-move-echo { opacity: .8; }
   }
 
   /* ── Serve set piece: full-screen ball flight ─────────── */
@@ -1218,79 +1259,274 @@ const TEMPLATES = [
    "timeline": [
     {
      "start": 0,
-     "end": 8,
+     "end": 10,
      "title": "Cross-Court Wake-Up",
-     "aim": "Grooving rhythm, contact point, court feel fast",
-     "drill": "Two diagonals mini-tennis rally simultaneously, service box to service box.",
-     "cycle": "Swap diagonal partners at 4 min",
-     "target": "20 consecutive balls in per pair",
-     "cue": "Contact at hip height, short backswing, eyes on the ball not the net.",
-     "diagram": "cross_court_rally"
+     "aim": "activate hands, footwork, find rhythm fast",
+     "drill": "Mini-tennis cross-court, both diagonals live simultaneously → progress from service box to full baseline.",
+     "cycle": "switch diagonal partners at 5 min mark",
+     "target": "20 consecutive cross-court balls per pair",
+     "cue": "Contact out in front, waist height, soft unhurried hands.",
+     "diagram": "cross_court_rally",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_net_top"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_net_bottom"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "left_net_bottom"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_net_top"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_net_top",
+        "to": "right_net_bottom",
+        "kind": "rally"
+       },
+       {
+        "from": "left_net_bottom",
+        "to": "right_net_top",
+        "kind": "rally"
+       }
+      ],
+      "note": "two cross-court mini rallies at once"
+     }
     },
     {
-     "start": 8,
-     "end": 20,
-     "title": "Approach & Volley Feed",
-     "aim": "Groove approach shot footwork and net closure",
-     "drill": "Feeder feeds short ball → approacher steps in, hits approach down the line, closes and volleys return feed.",
-     "cycle": "Rotate feeder→approacher→return-feeder→retriever every 3 min",
-     "target": "8 clean approach+volley combos per player",
-     "cue": "Inside foot steps first, contact out front, low-to-high swing path, split-step before the volley.",
-     "diagram": "fed_drill"
+     "start": 10,
+     "end": 25,
+     "title": "Approach Shot Groove",
+     "aim": "grooving approach mechanics off short ball",
+     "drill": "Feeder feeds short ball to mid-court → hitter approaches, drives deep to corner, follows shot in → feeder feeds first volley to finish.",
+     "cycle": "rotate feeder/hitter/queue every 4 reps",
+     "target": "8 clean approach-then-volley finishes each",
+     "cue": "Take it on the rise, contact out front, low-to-high path.",
+     "diagram": "fed_drill",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_mid_center",
+        "feeder": true
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_mid_center",
+        "move_to": "right_net_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_mid_center",
+        "to": "right_mid_center",
+        "kind": "feed"
+       }
+      ],
+      "note": "feeder feeds short ball, hitter closes net"
+     }
     },
     {
-     "start": 20,
-     "end": 32,
-     "title": "Depth Read Progression",
-     "aim": "Reading short vs deep to trigger attack",
-     "drill": "Feeder mixes short and deep feeds → approacher judges bounce, attacks short ones, resets on deep ones.",
-     "cycle": "Rotate same 4 roles every 3 min",
-     "target": "Correct read on 9/10 feeds",
-     "cue": "Read the bounce early — short ball, explode forward; deep ball, hold and reset.",
-     "diagram": "fed_drill"
+     "start": 25,
+     "end": 40,
+     "title": "Approach On The Move",
+     "aim": "approach shot off wide, moving short balls",
+     "drill": "Feeder feeds short ball alternating wide-left/wide-right → hitter shuffles in, hits approach then closes, feeder feeds first volley.",
+     "cycle": "rotate hitter every 5 balls, feeder every 10",
+     "target": "10 approach+volley sequences per player",
+     "cue": "Small adjustment steps, hit through contact, don't lunge.",
+     "diagram": "fed_drill",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_mid_center",
+        "feeder": true
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_back_center",
+        "move_to": "right_net_top"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_mid_center",
+        "to": "right_mid_top",
+        "kind": "feed"
+       }
+      ],
+      "note": "wide feed, hitter closes to net corner"
+     }
     },
     {
-     "start": 32,
-     "end": 44,
-     "title": "Live Rally Trigger",
-     "aim": "Applying approach under real rally pressure",
-     "drill": "Rally cross-court from baseline → feeder deliberately shortens one ball → receiver must recognise and attack net to finish.",
-     "cycle": "Pairs rotate on/off court every 6 min, resters feed baskets from baseline",
-     "target": "Finish 6 of 10 triggered points at net",
-     "cue": "First step diagonal not straight, close the gap fast, volley contact stays in front of the body.",
-     "diagram": "rotation_queue"
+     "start": 40,
+     "end": 50,
+     "title": "Live Points Pressure",
+     "aim": "apply approach-and-close under real point pressure",
+     "drill": "Feeder feeds a short ball to start each point → 2v2 half-court points play out, whoever gets the short ball must approach and close.",
+     "cycle": "rotate feeder every 2 points, swap sides every 5",
+     "target": "first pair to 7 points, best of 2 sets",
+     "cue": "First volley deep and low, set up the finish, don't force it.",
+     "diagram": "doubles_formation",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_center",
+        "feeder": true
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_net_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "right_back_center"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_net_center"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_back_center",
+        "kind": "feed"
+       }
+      ],
+      "note": "2v2 points, short feed forces net approach"
+     }
     },
     {
-     "start": 44,
-     "end": 54,
-     "title": "Approach Point Play",
-     "aim": "Committing the tactic inside real points",
-     "drill": "Play out full points → any short ball must be attacked with approach and net finish, no floating back to baseline.",
-     "cycle": "Winner stays, next of 4 rotates in every 2 points",
-     "target": "First to 7 points",
-     "cue": "Commit to the net after the approach — punch the volley crisp, don't rally back.",
-     "diagram": "rotation_queue"
-    },
-    {
-     "start": 54,
+     "start": 50,
      "end": 60,
-     "title": "King of the Court Finisher",
-     "aim": "Competitive reward for net-finish habit",
-     "drill": "Singles king-of-court, winner stays on, loser rotates off.",
-     "cycle": "Loser swaps out after every point",
-     "target": "First to 5 wins takes bragging rights",
-     "cue": "Every net finish scores a bonus point — reward the commitment, not just the winner.",
-     "diagram": "king_of_court"
+     "title": "King Of The Net",
+     "aim": "reward committed approach-and-attack under pressure",
+     "drill": "Feeder feeds short ball → challenger must approach and close net to beat the king; winner stays on.",
+     "cycle": "loser rotates to back of queue, new challenger every point",
+     "target": "first to 4 points holds 'king' status",
+     "cue": "Trust the first volley, stay low, split step on the pass attempt.",
+     "diagram": "king_of_court",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_mid_center",
+        "feeder": true
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_back_center",
+        "move_to": "right_net_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "left_net_center"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_1"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_mid_center",
+        "to": "right_back_center",
+        "kind": "feed"
+       }
+      ],
+      "note": "challenger approaches net to dethrone king"
+     }
     }
    ],
    "rotation": {
-    "summary": "With 4 players and 1 court, each drill block cycles all four through every role (feeder, hitter, return-feeder, retriever) so nobody stands idle, swapping every 2-3 minutes. In live-ball blocks, two players play while the other two feed baskets or keep score from the baseline, swapping in every 6 minutes or after every 2 points.",
+    "summary": "With 4 players on the one court, each fed drill uses one feeder, one hitter and two players queuing (collecting balls, restocking baskets, scoring) with roles rotating every 4-5 reps so everyone gets equal reps. The live-point and finisher blocks naturally cycle all four through feeder, competitor and queue roles every 1-2 points.",
     "needs_diagram": false
    },
    "finisher": {
-    "title": "King of the Court Finisher",
-    "description": "Singles king-of-court format: winner stays on court, loser rotates off and next player steps in immediately. Any point finished at the net with a volley or overhead scores as a bonus point on top of the normal score. First player to reach 5 total wins takes the bragging rights for the night.",
-    "diagram": "king_of_court"
+    "title": "King Of The Net",
+    "description": "Feeder starts every point with a short ball; the challenger must approach and close to the net to beat the reigning king, who tries to pass or lob. Winner stays on as king, loser rotates to the back of the queue, first to 4 points banks a 'reign' and reigns get tallied for bragging rights. Whoever holds the most reigns after 10 minutes wins the night.",
+    "diagram": "king_of_court",
+    "scene": {
+     "players": [
+      {
+       "n": 1,
+       "team": "a",
+       "at": "left_mid_center",
+       "feeder": true
+      },
+      {
+       "n": 2,
+       "team": "a",
+       "at": "right_back_center",
+       "move_to": "right_net_center"
+      },
+      {
+       "n": 3,
+       "team": "b",
+       "at": "left_net_center"
+      },
+      {
+       "n": 4,
+       "team": "b",
+       "at": "queue_1"
+      }
+     ],
+     "balls": [
+      {
+       "from": "left_mid_center",
+       "to": "right_back_center",
+       "kind": "feed"
+      }
+     ],
+     "note": "challenger approaches net to dethrone king"
+    }
    }
   }
  },
@@ -1304,72 +1540,278 @@ const TEMPLATES = [
    "focus": ""
   },
   "plan": {
-   "title": "Pattern Play Tactics",
+   "title": "Cross-Court Chess Match",
    "timeline": [
     {
      "start": 0,
      "end": 10,
-     "title": "Cross-Court Engine",
-     "aim": "Groove cross-court rhythm and court sense",
-     "drill": "4 players split into 2 pairs → simultaneous cross-court rallies (deuce pair, ad pair) → extend from service box to baseline.",
-     "cycle": "Swap diagonal partners at 5 min mark",
-     "target": "20-ball rally without unforced error",
-     "cue": "Watch the ball leave the strings before you move — read then react.",
-     "diagram": "cross_court_rally"
+     "title": "Diagonal Warm-Up",
+     "aim": "Groove cross-court rally, sharpen court awareness",
+     "drill": "All 4 rally cross-court simultaneously on both diagonals, net to baseline",
+     "cycle": null,
+     "target": "20+ consecutive balls each diagonal",
+     "cue": "Watch it land in, not just where you strike it",
+     "diagram": "cross_court_rally",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_top"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_back_bottom"
+       },
+       {
+        "n": 3,
+        "team": "a",
+        "at": "right_back_bottom"
+       },
+       {
+        "n": 4,
+        "team": "a",
+        "at": "right_back_top"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_top",
+        "to": "right_back_bottom",
+        "kind": "rally"
+       },
+       {
+        "from": "left_back_bottom",
+        "to": "right_back_top",
+        "kind": "rally"
+       }
+      ],
+      "note": "two simultaneous cross-court diagonals"
+     }
     },
     {
      "start": 10,
      "end": 25,
-     "title": "Cross-Court to Open the Line",
-     "aim": "Construct a point to create a down-the-line opening",
-     "drill": "2v2 baseline points → both pairs rally cross-court only until a short/high ball appears → one player rips down the line to finish.",
-     "cycle": "Rotate partners every 7-8 min, 2 rotations",
-     "target": "5 down-the-line winners per pair",
-     "cue": "Patience cross-court, then pounce — down the line is a reward, not a habit.",
-     "diagram": "cross_court_rally"
+     "title": "Patience Then Punish",
+     "aim": "Build cross-court patience, attack the first short ball",
+     "drill": "Two rally cross-court only→first short ball earns down-line finish; other two feed/retrieve & score",
+     "cycle": "Swap on/off pairs every 5 min",
+     "target": "Cross-court 4+ shots then line winner",
+     "cue": "Stay patient cross-court, only go down the line off a short one",
+     "diagram": "cross_court_rally",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_top"
+       },
+       {
+        "n": 3,
+        "team": "a",
+        "at": "right_back_bottom"
+       },
+       {
+        "n": 2,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_top",
+        "to": "right_back_bottom",
+        "kind": "rally"
+       },
+       {
+        "from": "right_back_bottom",
+        "to": "left_net_bottom",
+        "kind": "shot"
+       }
+      ],
+      "note": "short ball triggers down-line finish"
+     }
     },
     {
      "start": 25,
-     "end": 38,
-     "title": "Serve+1 Doubles Patterns",
-     "aim": "Train first-strike tactics and doubles coverage",
-     "drill": "Serve team serves wide/body/T then hits a planned serve+1 to set the net player → return team tries to neutralize with a low cross-court return.",
-     "cycle": "Rotate server every 2 points, switch sides every 4",
-     "target": "Serve team wins outright 3 of 10 points",
-     "cue": "The serve is the setup, not the finish — know your plus-one before you toss.",
-     "diagram": "doubles_formation"
+     "end": 40,
+     "title": "Serve Plus One",
+     "aim": "Dictate the point with first-strike serve patterns",
+     "drill": "Serve wide/T then hit planned +1 groundstroke to target; returner blocks back, feeders retrieve & reset fast",
+     "cycle": "Rotate server/returner every 4 points",
+     "target": "3 of 5 serve+1 combos land in zone",
+     "cue": "Decide your +1 shot before you even toss the ball",
+     "diagram": "fed_drill",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "right_back_center"
+       },
+       {
+        "n": 3,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 2,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "right_back_center",
+        "to": "left_back_center",
+        "kind": "rally"
+       }
+      ],
+      "zone": "left_mid_top",
+      "note": "serve then dictate to open zone"
+     }
     },
     {
-     "start": 38,
+     "start": 40,
      "end": 50,
-     "title": "Approach, Volley, Pass",
-     "aim": "Sharpen approach selection and net-closing decisions",
-     "drill": "Feeder feeds a short ball → receiver approaches down the line then closes net → baseline partner attempts a cross-court passing shot.",
-     "cycle": "Rotate feeder/approacher/passer every 3 min, all 4 cycle through",
-     "target": "Approacher wins net exchange 2 of 3 reps",
-     "cue": "Approach where you're strong, split-step, then read the pass before it's hit.",
-     "diagram": "fed_drill"
+     "title": "Formation Battles",
+     "aim": "Master up-back vs two-back positioning and coverage",
+     "drill": "Play doubles points→server's team up-back, returners two-back, net player reads and poaches short balls",
+     "cycle": "Rotate serving pair every 5 points",
+     "target": "First pair to 7 points",
+     "cue": "Net player: split-step, poach anything that floats high",
+     "diagram": "doubles_formation",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_net_top",
+        "move_to": "left_net_center"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "right_back_top"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_back_bottom"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_back_top",
+        "kind": "rally"
+       }
+      ],
+      "note": "up-back pair pressures two-back pair"
+     }
     },
     {
      "start": 50,
      "end": 60,
-     "title": "Kings of the Baseline",
-     "aim": "Compete using the patterns trained tonight",
-     "drill": "Doubles king-of-court: winners stay on → new pair challenges → bonus point awarded for any rally won via a cross-court-then-down-the-line pattern.",
-     "cycle": "Losing pair rotates off after each game to 4 points",
-     "target": "First pair to 11 total points wins",
-     "cue": "Play the pattern, not the panic shot — the line only opens after you've earned it.",
-     "diagram": "king_of_court"
+     "title": "Pattern Points Doubles",
+     "aim": "Reward smart tactics under real match pressure",
+     "drill": "Play doubles games→bonus point for executed cross-to-line pattern, serve+1 winner, or clean poach",
+     "cycle": "Rotate pairs after each game to 7",
+     "target": "First pair to 2 games wins",
+     "cue": "Ask yourself: what pattern am I trying to build right now",
+     "diagram": "doubles_formation",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_net_bottom",
+        "move_to": "left_net_center"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "right_net_top"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_back_center"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_back_center",
+        "kind": "rally"
+       }
+      ],
+      "note": "bonus points for tactical pattern execution"
+     }
     }
    ],
    "rotation": {
-    "summary": "All 4 players are on court together for every block, split into two shifting pairs so nobody is ever idle. Roles (feeder, approacher, server, partner) rotate on short timers within each drill, and partner pairings reshuffle between blocks so everyone plays with and against everyone.",
+    "summary": "With 4 players and 1 court, pairs alternate between active hitting roles and feeding/retrieving/scoring duties every 4-5 minutes so nobody is idle. In doubles blocks, all 4 stay on court simultaneously and rotate which pair serves or plays net.",
     "needs_diagram": false
    },
    "finisher": {
-    "title": "Kings of the Baseline",
-    "description": "Doubles king-of-the-court: one pair stays on court, the challenging pair rotates in after each game to 4 points. Any point won by rallying cross-court and then finishing down the line earns a bonus point, rewarding the tactical patterns trained all session. First pair to reach 11 total points takes bragging rights for the night.",
-    "diagram": "king_of_court"
+    "title": "Pattern Points Doubles",
+    "description": "Doubles games to 7, win by 2, with bonus points layered on top: +1 for winning a point via a cross-court-to-line pattern, +1 for a successful serve+1 combo, +1 for a clean poach winner. Best of 3 games; losing pair feeds balls and umpires the next. Winners get bragging rights and pick next week's warm-up.",
+    "diagram": "doubles_formation",
+    "scene": {
+     "players": [
+      {
+       "n": 1,
+       "team": "a",
+       "at": "left_net_bottom",
+       "move_to": "left_net_center"
+      },
+      {
+       "n": 2,
+       "team": "a",
+       "at": "left_back_center"
+      },
+      {
+       "n": 3,
+       "team": "b",
+       "at": "right_net_top"
+      },
+      {
+       "n": 4,
+       "team": "b",
+       "at": "right_back_center"
+      }
+     ],
+     "balls": [
+      {
+       "from": "left_back_center",
+       "to": "right_back_center",
+       "kind": "rally"
+      }
+     ],
+     "note": "tactical bonus points decide the match"
+    }
    }
   }
  },
@@ -1383,83 +1825,314 @@ const TEMPLATES = [
    "focus": ""
   },
   "plan": {
-   "title": "Corner Blitz Grind",
+   "title": "Corner Grinder Blitz",
    "timeline": [
     {
      "start": 0,
      "end": 8,
-     "title": "Cross-Court Fire-Up",
-     "aim": "Wake up legs, groove early rally rhythm",
-     "drill": "Two pairs rally diagonally, deuce-to-deuce and ad-to-ad simultaneously, groundstrokes only.",
-     "cycle": "Swap diagonals (deuce↔ad) at halfway mark",
-     "target": "20-ball rally without an error",
-     "cue": "Split step every ball — feet alive, not flat!",
-     "diagram": "cross_court_rally"
+     "title": "Live-Ball Warm-Up",
+     "aim": "Raise heart rate, groove early contact fast",
+     "drill": "Two mini-tennis rallies in service boxes, both pairs live simultaneously.",
+     "cycle": "swap rally partners at 4 min",
+     "target": "10+ shot rally streak",
+     "cue": "Split-step every bounce, light feet from ball one!",
+     "diagram": "cross_court_rally",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_mid_top"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_mid_top"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "left_mid_bottom"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_mid_bottom"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_mid_top",
+        "to": "right_mid_top",
+        "kind": "rally"
+       },
+       {
+        "from": "left_mid_bottom",
+        "to": "right_mid_bottom",
+        "kind": "rally"
+       }
+      ],
+      "note": "both pairs mini-tennis rallying at once"
+     }
     },
     {
      "start": 8,
-     "end": 20,
-     "title": "Cross-Court Depth Battle",
-     "aim": "Build cross-court consistency and controlled depth",
-     "drill": "Same diagonal rallies, target cones in deep corners, players push each other past service line.",
-     "cycle": "Rotate partner every 4 min, 3 rotations total",
-     "target": "15 consecutive balls past service line",
-     "cue": "Legs load, drive up — don't arm it, push through!",
-     "diagram": "cross_court_rally"
+     "end": 18,
+     "title": "Cross-Court Grind",
+     "aim": "Build cross-court consistency and legs under fatigue",
+     "drill": "Pair rallies cross-court from baseline corners, counts consecutive shots.",
+     "cycle": "swap hitting pair at 5 min",
+     "target": "20 consecutive cross-court shots",
+     "cue": "Recover to center after every shot, legs never stop!",
+     "diagram": "cross_court_rally",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_top"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_back_bottom"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_top",
+        "to": "right_back_bottom",
+        "kind": "rally"
+       }
+      ],
+      "note": "waiting pair feeds stray balls, keeps score"
+     }
     },
     {
-     "start": 20,
-     "end": 32,
-     "title": "Down-the-Line Grind",
-     "aim": "Sharpen straight-ball accuracy and shoulder turn",
-     "drill": "Split court into two sideline lanes, pairs rally down the line only.",
-     "cycle": "Rotate lanes and partners every 4 min",
-     "target": "12 balls in a row down the line",
-     "cue": "Recover to center after every shot, no standing flat-footed!",
-     "diagram": "down_the_line_rally"
+     "start": 18,
+     "end": 28,
+     "title": "Down-The-Line Grind",
+     "aim": "Sharpen down-the-line precision, recovery footwork",
+     "drill": "Pair rallies down-the-line same sideline, targets tight to line.",
+     "cycle": "swap hitting pair at 5 min",
+     "target": "15 consecutive down-the-line shots",
+     "cue": "Explode side to side, stay low, reset fast!",
+     "diagram": "down_the_line_rally",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_top"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_back_top"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_top",
+        "to": "right_back_top",
+        "kind": "rally"
+       }
+      ],
+      "note": "queue players feed/score while waiting"
+     }
     },
     {
-     "start": 32,
-     "end": 44,
-     "title": "Corner-to-Corner Recovery",
-     "aim": "Train recovery speed and shot placement under fatigue",
-     "drill": "Feeder alternates corners from basket → hitter sprints and hits into marked zones, others feed and shag.",
-     "cycle": "Rotate hitter every 3 min, all 4 through once",
-     "target": "10 zone-landing balls per turn",
-     "cue": "Explode, hit, recover — legs never stop moving!",
-     "diagram": "target_zone"
+     "start": 28,
+     "end": 40,
+     "title": "Corner-to-Corner Feed Fest",
+     "aim": "Max ball-count corner-to-corner footwork drill",
+     "drill": "Feeder feeds corner-to-corner, hitter strikes every ball live, sprints back to center.",
+     "cycle": "rotate feeder/hitter/queue every 3 min",
+     "target": "Hit 40+ balls per rotation",
+     "cue": "Split-step, explode, recover to center — every single ball!",
+     "diagram": "fed_drill",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "right_mid_center",
+        "feeder": true
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_back_top",
+        "move_to": "left_back_bottom"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "right_mid_center",
+        "to": "left_back_top",
+        "kind": "feed"
+       }
+      ],
+      "note": "hitter alternates corners, queue collects balls"
+     }
     },
     {
-     "start": 44,
-     "end": 52,
-     "title": "Fast Hands Net Wars",
-     "aim": "Sharpen reflex volleys and net recovery position",
-     "drill": "Two players volley-volley live at the net, high pace, short court boundaries.",
-     "cycle": "Rotate pairs every 2 min, everyone gets 2 turns",
-     "target": "First to 10 volley points per round",
-     "cue": "Hands quiet, split before every punch — react, don't guess!",
-     "diagram": "rotation_queue"
+     "start": 40,
+     "end": 50,
+     "title": "Doubles Live Points",
+     "aim": "Live doubles points, up-back positioning, target depth",
+     "drill": "Play doubles points, net player closes, baseline targets deep corners.",
+     "cycle": "rotate serve/return every 2 points",
+     "target": "First pair to 7 points",
+     "cue": "Legs bent, split-step every serve, close the net hard!",
+     "diagram": "doubles_formation",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_net_center"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "right_net_center"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_back_center"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_back_center",
+        "kind": "rally"
+       }
+      ],
+      "note": "net players poach on short balls"
+     }
     },
     {
-     "start": 52,
+     "start": 50,
      "end": 60,
      "title": "King of the Court",
-     "aim": "Compete live, close session with maximum intensity",
-     "drill": "Winner-stays-on singles → challenger rotates in from queue after every point-game.",
-     "cycle": "Loser rotates out, next challenger in after each game",
-     "target": "First to 4 points wins, crown king by minute 60",
-     "cue": "Empty the tank — every ball like it's match point!",
-     "diagram": "king_of_court"
+     "aim": "Compete live, reward hustle under pressure",
+     "drill": "Winner stays on court, challenger rotates in from queue.",
+     "cycle": "loser rotates to back of queue",
+     "target": "First to 4 points wins, most wins overall",
+     "cue": "Battle every point like match point — legs, legs, legs!",
+     "diagram": "king_of_court",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 2,
+        "team": "b",
+        "at": "right_back_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_back_center",
+        "kind": "rally"
+       }
+      ],
+      "note": "challenger from queue enters after each match"
+     }
     }
    ],
    "rotation": {
-    "summary": "With 4 players and 1 court, players work in two pairs for the rally blocks, swapping partners and lanes every 3-4 minutes so all combinations get equal reps. During fed and volley blocks, non-hitting players actively feed, shag, or keep count rather than standing idle. The finisher runs as a continuous winner-stays-on singles queue so no one waits more than one game.",
+    "summary": "With 4 players on one court, drills are built in pairs so nobody stands idle: one pair hits live while the other pair feeds stray balls, shags, or keeps score, swapping in on a strict clock. The fed drill rotates all four through feeder, hitter, and ball-collector roles every few minutes so contact counts stay high for everyone.",
     "needs_diagram": false
    },
    "finisher": {
     "title": "King of the Court",
-    "description": "Singles winner-stays-on format: two players battle to 4 points while the other two are queued as next challengers, keeping score and feeding balls back fast to keep pace high. Loser rotates to the back of the queue, winner stays to face the next challenger. Whoever holds the court when time expires at 60 minutes is crowned King of the Grind — bragging rights until next session.",
-    "diagram": "king_of_court"
+    "description": "Singles winner-stays-on: first to 4 points wins the match and stays on court to face the next challenger from the queue. Losers rotate to the back of the line and immediately start feeding/collecting for the next match — no standing around. Most match wins by the buzzer earns bragging rights for the week.",
+    "diagram": "king_of_court",
+    "scene": {
+     "players": [
+      {
+       "n": 1,
+       "team": "a",
+       "at": "left_back_center"
+      },
+      {
+       "n": 2,
+       "team": "b",
+       "at": "right_back_center"
+      },
+      {
+       "n": 3,
+       "team": "b",
+       "at": "queue_1"
+      },
+      {
+       "n": 4,
+       "team": "b",
+       "at": "queue_2"
+      }
+     ],
+     "balls": [
+      {
+       "from": "left_back_center",
+       "to": "right_back_center",
+       "kind": "rally"
+      }
+     ],
+     "note": "challenger enters from queue after each match"
+    }
    }
   }
  },
@@ -1473,72 +2146,271 @@ const TEMPLATES = [
    "focus": ""
   },
   "plan": {
-   "title": "Throne of the Court",
+   "title": "Court Jesters Showdown",
    "timeline": [
     {
      "start": 0,
-     "end": 8,
-     "title": "Mini-Tennis Mayhem",
-     "aim": "Groove touch and rally consistency fast",
-     "drill": "2v2 mini-tennis cross-court rally inside service boxes, cooperative continuous hitting",
-     "cycle": "swap partners every 2 min",
-     "target": "rally 10+ shots before reset",
-     "cue": "Racquets up, smiles on — balls in by minute two!",
-     "diagram": "cross_court_rally"
+     "end": 10,
+     "title": "Cross-Court Mini Rally Party",
+     "aim": "Groove contact and court feel fast",
+     "drill": "4 players split → cooperative cross-court mini-tennis rally, keep ball alive",
+     "cycle": "Switch diagonal pairs every 3 min",
+     "target": "20 consecutive cross-court rallies",
+     "cue": "Bounce-hit, smile, no ball ever dies!",
+     "diagram": "cross_court_rally",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_net_top"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "right_net_bottom"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "left_net_bottom"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_net_top"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_net_top",
+        "to": "right_net_bottom",
+        "kind": "rally"
+       },
+       {
+        "from": "left_net_bottom",
+        "to": "right_net_top",
+        "kind": "rally"
+       }
+      ],
+      "note": "cross diagonals rallying simultaneously mini-tennis"
+     }
     },
     {
-     "start": 8,
-     "end": 20,
-     "title": "Target Zone Duel",
-     "aim": "precision groundstrokes under game pressure",
-     "drill": "1v1 half-court points → cones mark bonus zones, hit into zone scores 2, else 1",
-     "cycle": "winner stays on, challenger rotates every 3 min, waiting pair feeds & scores",
-     "target": "first to 7 points wins duel",
-     "cue": "Paint the corner, own the crown!",
-     "diagram": "target_zone"
+     "start": 10,
+     "end": 22,
+     "title": "Tramline Target Attack",
+     "aim": "Depth and accuracy into doubles alley",
+     "drill": "Doubles pairs rally → cash points landing shots in taped zone",
+     "cycle": "Rotate feeder/pair roles every 4 min",
+     "target": "First pair to 10 zone points",
+     "cue": "Paint the lines, cash the points!",
+     "diagram": "target_zone",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_net_top"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "right_back_center"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_net_bottom"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_back_top",
+        "kind": "shot"
+       }
+      ],
+      "zone": "right_back_top",
+      "note": "aiming cross-court into alley target zone"
+     }
     },
     {
-     "start": 20,
+     "start": 22,
      "end": 34,
-     "title": "Poach Party",
-     "aim": "doubles positioning and net poaching instincts",
-     "drill": "2v2 live points → server team up-back, receivers two-back, poach whenever possible",
-     "cycle": "switch formations every 4 min, rotate partners at end",
-     "target": "first team to 4 games",
-     "cue": "See it, poach it, own the net!",
-     "diagram": "doubles_formation"
+     "title": "Poach Party Doubles",
+     "aim": "Net poaching instincts and loud communication",
+     "drill": "Play doubles points → net player must poach at least once",
+     "cycle": "Rotate net/baseline roles every 3 min, all 4 cycle through",
+     "target": "Best of 6 points per rotation",
+     "cue": "See it, poach it, own it!",
+     "diagram": "doubles_formation",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_net_top",
+        "move_to": "left_net_center"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "right_net_bottom"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_back_center"
+       }
+      ],
+      "balls": [
+       {
+        "from": "right_back_center",
+        "to": "left_net_center",
+        "kind": "rally"
+       }
+      ],
+      "note": "net player poaches across to intercept"
+     }
     },
     {
      "start": 34,
      "end": 46,
-     "title": "King of the Ladder",
-     "aim": "competitive singles play, fast mental reset",
-     "drill": "singles king-of-court → winner stays, loser rotates off, waiting player feeds balls in",
-     "cycle": "rotate after each mini-game, first to 4 points, all four cycle roles",
-     "target": "crown decided after 3 rotations",
-     "cue": "Stay on top or step aside — no mercy!",
-     "diagram": "king_of_court"
+     "title": "King of the Court Ladder",
+     "aim": "Competitive singles pressure, fast decisions",
+     "drill": "Winner-stays-on singles → loser rotates to feed/score queue",
+     "cycle": "Winner stays, loser to back of queue every game",
+     "target": "First to 4 games wins crown",
+     "cue": "Win it or queue it!",
+     "diagram": "king_of_court",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 2,
+        "team": "b",
+        "at": "right_back_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "queue_1"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "queue_2"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_back_center",
+        "kind": "rally"
+       }
+      ],
+      "note": "singles battle, two waiting to cycle in"
+     }
     },
     {
      "start": 46,
      "end": 60,
-     "title": "Tiebreak Throne",
-     "aim": "high-pressure scoring finale, crown champion",
-     "drill": "singles tiebreak ladder → first to 7 stays on as 'king', handicap points for lower seed",
-     "cycle": "loser swaps with feeder/scorer immediately, continuous rotation",
-     "target": "most crowns wins bragging rights",
-     "cue": "Winner stays, loser buys the water bottles!",
-     "diagram": "king_of_court"
+     "title": "Chaos Tiebreak Showdown",
+     "aim": "Peak competitive intensity, bragging rights finale",
+     "drill": "Doubles tiebreak to 10 → handicap points for trailing pair, bonus point for any drop-shot winner",
+     "cycle": "No rotation, same teams full tiebreak",
+     "target": "First pair to 10 points, win by 2",
+     "cue": "Chaos rules — last laugh wins the crown!",
+     "diagram": "doubles_formation",
+     "scene": {
+      "players": [
+       {
+        "n": 1,
+        "team": "a",
+        "at": "left_net_top"
+       },
+       {
+        "n": 2,
+        "team": "a",
+        "at": "left_back_center"
+       },
+       {
+        "n": 3,
+        "team": "b",
+        "at": "right_net_bottom"
+       },
+       {
+        "n": 4,
+        "team": "b",
+        "at": "right_back_center"
+       }
+      ],
+      "balls": [
+       {
+        "from": "left_back_center",
+        "to": "right_net_bottom",
+        "kind": "shot"
+       }
+      ],
+      "note": "tiebreak point, drop-shot bonus in play"
+     }
     }
    ],
    "rotation": {
-    "summary": "With one court and four players, two always play while the other two feed balls, keep score, or wait as next challenger — nobody stands idle. Roles cycle every 2-4 minutes or after each mini-game so everyone gets equal hitting time across all blocks, ending in a full king-of-court rotation for the finale.",
+    "summary": "With 4 players on one court, every block uses doubles-style pairs or a singles-plus-queue setup so nobody stands idle — waiting players always feed, score, or queue to rotate in within 3-4 minutes. Roles (net/baseline, feeder/hitter, winner/queue) cycle every few minutes so all four get equal reps in every format.",
     "needs_diagram": false
    },
    "finisher": {
-    "title": "Tiebreak Throne",
-    "description": "Singles tiebreak ladder where the first player to 7 points stays on court as reigning 'king,' with a handicap of bonus points given to whoever has won fewer duels tonight. Loser immediately swaps out for the next challenger, keeping the action continuous until time runs out. Whoever holds the throne last takes bragging rights (and skips water duty).",
-    "diagram": "king_of_court"
+    "title": "Chaos Tiebreak Showdown",
+    "description": "Doubles tiebreak to 10 points, win by 2, with the trailing pair starting on a +2 handicap to keep it spicy. Any point won off a disguised drop shot scores double, rewarding flair over just power. Winning pair gets crowned Court Jesters and picks the music for next practice.",
+    "diagram": "doubles_formation",
+    "scene": {
+     "players": [
+      {
+       "n": 1,
+       "team": "a",
+       "at": "left_net_top"
+      },
+      {
+       "n": 2,
+       "team": "a",
+       "at": "left_back_center"
+      },
+      {
+       "n": 3,
+       "team": "b",
+       "at": "right_net_bottom"
+      },
+      {
+       "n": 4,
+       "team": "b",
+       "at": "right_back_center"
+      }
+     ],
+     "balls": [
+      {
+       "from": "left_back_center",
+       "to": "right_net_bottom",
+       "kind": "shot"
+      }
+     ],
+     "note": "match point, drop-shot bonus on the line"
+    }
    }
   }
  }
@@ -1936,7 +2808,7 @@ function courtDiagram(players) {
 // ── Drill diagrams: fixed pattern library, not AI-generated ───────────────
 // Claude only ever picks a pattern name (see the edge function prompt); the
 // diagrams themselves are hand-built here so they always render sensibly.
-const DIAG_ARROWHEAD_DEFS = `<defs><marker id="diagArrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--gold)"/></marker></defs>`;
+const DIAG_ARROWHEAD_DEFS = `<defs><marker id="diagArrowHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--gold)"/></marker><marker id="diagMoveHead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--chalk-faint)"/></marker></defs>`;
 
 const DIAG_COURT_BASE = `
   <rect class="diag-court-rect" x="20" y="12" width="280" height="136" rx="4"/>
@@ -1945,65 +2817,87 @@ const DIAG_COURT_BASE = `
   <line class="diag-court-inner" x1="90" y1="80" x2="230" y2="80"/>
 `;
 
+// A numbered player: circle + label grouped so they animate together.
+// Moving players position via offset-path (the `move` class); static ones
+// via transform. Never both — offset-path would double-shift the group.
+function diagPlayer(label, { x = 0, y = 0, dim = false, r = 8, move = '' } = {}) {
+  const cls = `diag-player${dim ? ' diag-player--dim' : ''}${move ? ' ' + move : ''}`;
+  const pos = move ? '' : ` transform="translate(${x} ${y})"`;
+  return `<g class="${cls}"${pos}><circle r="${r}"/><text dy="3.2">${label}</text></g>`;
+}
+
 const DIAG_BODIES = {
   cross_court_rally: `
-    <circle class="diag-dot" cx="105" cy="42" r="8"/>
-    <circle class="diag-dot" cx="215" cy="118" r="8"/>
+    <path class="diag-move-echo" d="M 105 42 L 93 70"/>
+    <path class="diag-move-echo" d="M 215 118 L 227 90"/>
+    ${diagPlayer('1', { move: 'move-recover-a' })}
+    ${diagPlayer('2', { move: 'move-recover-b' })}
     <path class="diag-arrow-echo" d="M 105 42 L 215 118" marker-end="url(#diagArrowHead)"/>
     <circle class="diag-ball path-diag" cx="0" cy="0" r="6"/>
   `,
   down_the_line_rally: `
-    <circle class="diag-dot" cx="105" cy="42" r="8"/>
-    <circle class="diag-dot" cx="215" cy="42" r="8"/>
+    <path class="diag-move-echo" d="M 105 42 L 105 68"/>
+    <path class="diag-move-echo" d="M 215 42 L 215 68"/>
+    ${diagPlayer('1', { move: 'move-line-a' })}
+    ${diagPlayer('2', { move: 'move-line-b' })}
     <path class="diag-arrow-echo" d="M 105 42 L 215 42" marker-end="url(#diagArrowHead)"/>
     <circle class="diag-ball path-straight" cx="0" cy="0" r="6"/>
   `,
   fed_drill: `
-    <rect class="diag-feeder" x="99" y="112" width="12" height="12" rx="2"/>
-    <circle class="diag-dot" cx="215" cy="42" r="8"/>
+    <g class="diag-feeder" transform="translate(105 118)"><rect x="-6" y="-6" width="12" height="12" rx="2"/><text dy="3.2">F</text></g>
+    <path class="diag-move-echo" d="M 238 66 L 215 42"/>
+    ${diagPlayer('1', { move: 'move-hitter' })}
     <path class="diag-arrow-echo" d="M 105 118 Q 160 55 215 42" marker-end="url(#diagArrowHead)"/>
     <circle class="diag-ball path-feed" cx="0" cy="0" r="6"/>
   `,
   target_zone: `
-    <circle class="diag-dot" cx="105" cy="42" r="8"/>
     <ellipse class="diag-target" cx="215" cy="118" rx="22" ry="16"/>
+    <path class="diag-move-echo" d="M 105 42 L 93 70"/>
+    ${diagPlayer('1', { move: 'move-target' })}
     <path class="diag-arrow-echo" d="M 105 42 L 215 118" marker-end="url(#diagArrowHead)"/>
-    <circle class="diag-ball path-diag" cx="0" cy="0" r="6"/>
+    <circle class="diag-ball path-shot" cx="0" cy="0" r="6"/>
   `,
   rotation_queue: `
-    <circle class="diag-dot" cx="105" cy="42" r="7"/>
-    <circle class="diag-dot" cx="215" cy="42" r="7"/>
-    <circle class="diag-dot" cx="215" cy="118" r="7"/>
-    <circle class="diag-dot" cx="105" cy="118" r="7"/>
+    ${diagPlayer('1', { move: 'move-rot-1' })}
+    ${diagPlayer('2', { move: 'move-rot-2' })}
+    ${diagPlayer('3', { move: 'move-rot-3' })}
+    ${diagPlayer('4', { move: 'move-rot-4' })}
     <path class="diag-arrow" d="M 118 38 Q 160 20 202 38" marker-end="url(#diagArrowHead)"/>
     <path class="diag-arrow" d="M 219 55 Q 235 80 219 105" marker-end="url(#diagArrowHead)"/>
     <path class="diag-arrow" d="M 202 122 Q 160 140 118 122" marker-end="url(#diagArrowHead)"/>
     <path class="diag-arrow" d="M 101 105 Q 85 80 101 55" marker-end="url(#diagArrowHead)"/>
+    <path class="diag-arrow-echo" d="M 105 42 L 215 42" marker-end="url(#diagArrowHead)"/>
+    <circle class="diag-ball path-straight" cx="0" cy="0" r="6"/>
   `,
   king_of_court: `
-    <circle class="diag-dot" cx="160" cy="80" r="9"/>
-    <circle class="diag-dot-dim" cx="318" cy="55" r="6"/>
-    <circle class="diag-dot-dim" cx="318" cy="80" r="6"/>
-    <circle class="diag-dot-dim" cx="318" cy="105" r="6"/>
-    <path class="diag-arrow" d="M 305 80 Q 250 80 178 80" marker-end="url(#diagArrowHead)"/>
+    ${diagPlayer('K', { x: 105, y: 80, r: 9 })}
+    ${diagPlayer('1', { x: 215, y: 80 })}
+    <path class="diag-move-echo" d="M 318 52 Q 285 58 252 72" marker-end="url(#diagMoveHead)"/>
+    <path class="diag-move-echo" d="M 318 96 L 318 52"/>
+    ${diagPlayer('2', { dim: true, r: 7, move: 'move-queue-in' })}
+    ${diagPlayer('3', { dim: true, r: 7, move: 'move-queue-up' })}
+    <path class="diag-arrow-echo" d="M 105 80 L 215 80" marker-end="url(#diagArrowHead)"/>
+    <circle class="diag-ball path-king" cx="0" cy="0" r="6"/>
   `,
   doubles_formation: `
-    <circle class="diag-dot" cx="105" cy="42" r="8"/>
-    <circle class="diag-dot" cx="130" cy="80" r="8"/>
-    <circle class="diag-dot-dim" cx="215" cy="42" r="7"/>
-    <circle class="diag-dot-dim" cx="215" cy="118" r="7"/>
-    <path class="diag-arrow" d="M 140 72 Q 175 60 205 75" marker-end="url(#diagArrowHead)"/>
+    ${diagPlayer('3', { x: 215, y: 42, dim: true, r: 7 })}
+    ${diagPlayer('4', { x: 215, y: 118, dim: true, r: 7 })}
+    <path class="diag-move-echo" d="M 135 56 Q 148 64 158 76" marker-end="url(#diagMoveHead)"/>
+    ${diagPlayer('2', { x: 105, y: 118 })}
+    ${diagPlayer('1', { move: 'move-poach' })}
+    <path class="diag-arrow-echo" d="M 105 118 L 215 42" marker-end="url(#diagArrowHead)"/>
+    <circle class="diag-ball path-diag2" cx="0" cy="0" r="6"/>
   `,
 };
 
 const DIAG_META = {
-  cross_court_rally: { label: 'Cross-Court Rally', sub: 'Ball travels diagonally, corner to corner.' },
-  down_the_line_rally: { label: 'Down-the-Line Rally', sub: 'Ball travels straight, same side of the court.' },
-  fed_drill: { label: 'Fed Drill', sub: 'One player feeds, the other hits — repeat.' },
-  target_zone: { label: 'Target Zone', sub: 'Aim for the marked landing area.' },
-  rotation_queue: { label: 'Rotation', sub: 'Players cycle through these positions in order.' },
-  king_of_court: { label: 'King of the Court', sub: 'Winner stays on, next challenger rotates in.' },
-  doubles_formation: { label: 'Doubles Formation', sub: 'Net player poaches while the back player covers.' },
+  cross_court_rally: { label: 'Cross-Court Rally', sub: 'Players 1 and 2 rally corner to corner, recovering to centre between shots.' },
+  down_the_line_rally: { label: 'Down-the-Line Rally', sub: 'Players 1 and 2 rally straight down the line, recovering after each ball.' },
+  fed_drill: { label: 'Fed Drill', sub: 'F feeds — player 1 moves to the ball, hits, and resets.' },
+  target_zone: { label: 'Target Zone', sub: 'Player 1 lands every shot in the marked zone, recovering between balls.' },
+  rotation_queue: { label: 'Rotation', sub: 'Players 1–4 rally while cycling one position in arrow order.' },
+  king_of_court: { label: 'King of the Court', sub: 'K defends the court against 1 — players 2 and 3 queue for the next point.' },
+  doubles_formation: { label: 'Doubles Formation', sub: 'Player 2 rallies cross-court while 1 poaches at the net — 3 and 4 defend.' },
 };
 
 function buildDrillDiagramSvg(pattern) {
@@ -2016,12 +2910,111 @@ function buildDrillDiagramSvg(pattern) {
   </svg>`;
 }
 
-function openDiagramSheet(pattern) {
-  const meta = DIAG_META[pattern];
-  if (!meta) return;
-  $('diagramTitle').textContent = meta.label;
-  $('diagramSub').textContent = meta.sub;
-  $('diagramSvgWrap').innerHTML = buildDrillDiagramSvg(pattern);
+// ── Scene spec: drill-accurate diagrams described by the model ────────────
+// The edge function may attach a small "scene" object to each block: players
+// on NAMED court anchors, 1-2 balls between anchors, optional movement and a
+// target zone. We render it with the same hand-built pieces as the pattern
+// library, so it always looks consistent — and fall back to the pattern tag
+// whenever the scene is missing or fails validation.
+const DIAG_ANCHORS = (() => {
+  const map = {};
+  const depths = { left: { net: 140, mid: 100, back: 55 }, right: { net: 180, mid: 220, back: 265 } };
+  const lanes = { top: 42, center: 80, bottom: 118 };
+  for (const side of ['left', 'right']) {
+    for (const d of ['net', 'mid', 'back']) {
+      for (const l of ['top', 'center', 'bottom']) map[`${side}_${d}_${l}`] = [depths[side][d], lanes[l]];
+    }
+  }
+  map.queue_1 = [318, 52]; map.queue_2 = [318, 80]; map.queue_3 = [318, 108];
+  return map;
+})();
+
+// Returns a cleaned scene, or null (→ caller falls back to the pattern).
+function sanitizeScene(scene) {
+  if (!scene || typeof scene !== 'object') return null;
+  const A = DIAG_ANCHORS;
+  const players = (Array.isArray(scene.players) ? scene.players : [])
+    .filter((p) => p && A[p.at]).slice(0, 8)
+    .map((p, i) => ({
+      n: String(p.n ?? i + 1).slice(0, 2),
+      team: p.team === 'b' ? 'b' : 'a',
+      at: p.at,
+      move_to: p.move_to && A[p.move_to] && p.move_to !== p.at ? p.move_to : null,
+      feeder: !!p.feeder,
+    }));
+  const balls = (Array.isArray(scene.balls) ? scene.balls : [])
+    .filter((b) => b && A[b.from] && A[b.to] && b.from !== b.to).slice(0, 2)
+    .map((b) => ({ from: b.from, to: b.to, kind: ['rally', 'feed', 'shot'].includes(b.kind) ? b.kind : 'rally' }));
+  if (!players.length || !balls.length) return null; // every drill here hits balls
+  return {
+    players, balls,
+    zone: scene.zone && A[scene.zone] ? scene.zone : null,
+    note: typeof scene.note === 'string' ? scene.note.slice(0, 90) : '',
+  };
+}
+
+function buildSceneSvg(scene) {
+  const A = DIAG_ANCHORS;
+  const parts = [];
+  if (scene.zone) {
+    const [zx, zy] = A[scene.zone];
+    parts.push(`<ellipse class="diag-target" cx="${zx}" cy="${zy}" rx="22" ry="16"/>`);
+  }
+  // movement traces under everything that moves
+  for (const p of scene.players) {
+    if (!p.move_to || p.feeder) continue;
+    const [x1, y1] = A[p.at], [x2, y2] = A[p.move_to];
+    parts.push(`<path class="diag-move-echo" d="M ${x1} ${y1} L ${x2} ${y2}" marker-end="url(#diagMoveHead)"/>`);
+  }
+  for (const p of scene.players) {
+    const [x, y] = A[p.at];
+    if (p.feeder) {
+      parts.push(`<g class="diag-feeder" transform="translate(${x} ${y})"><rect x="-6" y="-6" width="12" height="12" rx="2"/><text dy="3.2">F</text></g>`);
+      continue;
+    }
+    const dim = p.team === 'b';
+    const r = dim ? 7 : 8;
+    if (p.move_to) {
+      const [x2, y2] = A[p.move_to];
+      // right-half movers run in opposite phase so paired movement alternates
+      const anim = x >= 160 ? 'anim-move-alt' : 'anim-move';
+      parts.push(`<g class="diag-player${dim ? ' diag-player--dim' : ''} ${anim}" style="offset-path: path('M ${x} ${y} L ${x2} ${y2}')"><circle r="${r}"/><text dy="3.2">${esc(p.n)}</text></g>`);
+    } else {
+      parts.push(diagPlayer(esc(p.n), { x, y, dim, r }));
+    }
+  }
+  scene.balls.forEach((b, i) => {
+    const [x1, y1] = A[b.from], [x2, y2] = A[b.to];
+    let d = `M ${x1} ${y1} L ${x2} ${y2}`;
+    if (b.kind === 'feed') {
+      // bow the feed sideways: control point perpendicular to the midpoint
+      const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+      const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy) || 1;
+      d = `M ${x1} ${y1} Q ${Math.round(mx - (dy / len) * 30)} ${Math.round(my + (dx / len) * 30)} ${x2} ${y2}`;
+    }
+    parts.push(`<path class="diag-arrow-echo" d="${d}" marker-end="url(#diagArrowHead)"/>`);
+    const cls = b.kind === 'rally' ? 'anim-rally' : 'anim-fade';
+    const delay = i > 0 ? '; animation-delay: -1.2s' : '';
+    parts.push(`<circle class="diag-ball ${cls}" cx="0" cy="0" r="6" style="offset-path: path('${d}')${delay}"/>`);
+  });
+  return `<svg class="diag-svg" viewBox="0 0 340 160" xmlns="http://www.w3.org/2000/svg">
+    ${DIAG_ARROWHEAD_DEFS}
+    ${DIAG_COURT_BASE}
+    ${parts.join('\n')}
+  </svg>`;
+}
+
+// Takes a block-like object ({ title, diagram, scene }); a drill-accurate
+// scene wins, the pattern library is the fallback. Legacy string calls
+// (pattern name only) still work.
+function openDiagramSheet(block) {
+  if (typeof block === 'string') block = { diagram: block };
+  const scene = sanitizeScene(block.scene);
+  const meta = DIAG_META[block.diagram];
+  if (!scene && !meta) return;
+  $('diagramTitle').textContent = (scene && block.title) || (meta ? meta.label : block.title || 'Drill');
+  $('diagramSub').textContent = (scene && scene.note) || (meta ? meta.sub : '');
+  $('diagramSvgWrap').innerHTML = scene ? buildSceneSvg(scene) : buildDrillDiagramSvg(block.diagram);
   $('diagramVeil').hidden = false;
   requestAnimationFrame(() => { $('diagramVeil').classList.add('open'); $('diagramSheet').classList.add('open'); });
   $('diagramSheet').setAttribute('aria-hidden', 'false');
@@ -2087,8 +3080,8 @@ function showPlan(animate) {
     <h2>${esc(plan.title)}</h2>
     <div class="meta">${esc(metaLine(inp))}${inp.focus ? ' · ' + esc(inp.focus) : ''}</div>`;
 
-  const diagBtn = (pattern) => (pattern && pattern !== 'none' && DIAG_META[pattern]
-    ? `<button class="block-diagram-btn" data-diagram="${pattern}" aria-label="Show court diagram">${ICONS.court}</button>`
+  const diagBtn = (b) => (b && (sanitizeScene(b.scene) || (b.diagram && b.diagram !== 'none' && DIAG_META[b.diagram]))
+    ? `<button class="block-diagram-btn" aria-label="Show court diagram">${ICONS.court}</button>`
     : '');
 
   const blocks = Array.isArray(plan.timeline) ? plan.timeline : [];
@@ -2096,7 +3089,7 @@ function showPlan(animate) {
     <div class="block reveal" data-i="${i}" style="transition-delay:${Math.min(i * 60, 240)}ms">
       <div class="block-head">
         <span class="badges"><span class="time">${esc(fmtRange(b))}</span><span class="now">NOW</span></span>
-        ${diagBtn(b.diagram)}
+        ${diagBtn(b)}
       </div>
       <h3>${esc(b.title)}</h3>
       ${renderFacets(b)}
@@ -2118,16 +3111,19 @@ function showPlan(animate) {
   $('finisherSlot').innerHTML = fin && fin.title ? `
     <div class="card finisher reveal">
       <div class="tag">${ICONS.trophy} Competitive finisher</div>
-      ${diagBtn(fin.diagram)}
+      ${diagBtn(fin)}
       <h3>${esc(fin.title)}</h3>
       <p>${esc(fin.description)}</p>
     </div>` : '';
 
   $('timeline').querySelectorAll('.block-diagram-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => { e.stopPropagation(); openDiagramSheet(btn.dataset.diagram); });
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDiagramSheet(blocks[Number(btn.closest('.block').dataset.i)]);
+    });
   });
   const finDiagBtn = document.querySelector('#finisherSlot .block-diagram-btn');
-  if (finDiagBtn) finDiagBtn.addEventListener('click', () => openDiagramSheet(finDiagBtn.dataset.diagram));
+  if (finDiagBtn) finDiagBtn.addEventListener('click', () => openDiagramSheet(fin));
 
   const swap = () => {
     $('askScreen').hidden = true;
