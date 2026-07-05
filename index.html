@@ -768,15 +768,27 @@
     border: 1px solid var(--stroke-soft); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
   }
   .live-ctl svg { width: 18px; height: 18px; }
-  .live-ctl.live-end { color: #E08A8A; font-weight: 700; font-size: 13px; }
-  .live-ctl.live-end.confirm { background: #7A2E2E; color: var(--chalk); border-color: #A44; }
+  .live-ctl.live-end {
+    color: #E08A8A; font-weight: 700; font-size: 13px; position: relative; overflow: hidden;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  .live-end-fill {
+    position: absolute; inset: 0; left: auto; width: 0%; background: rgba(224,138,138,.35);
+    pointer-events: none;
+  }
+  .live-end.holding .live-end-fill { width: 100%; transition: width var(--hold-ms, .6s) linear; }
+  .live-end-lab { position: relative; z-index: 1; }
 
+  /* Glance opens/closes as a shared-element grow from the live bar, not a
+     flat fade — the transform-origin/scale are set inline per-open from the
+     bar's actual on-screen rect (see openGlance/closeGlance). */
   .glance {
     position: fixed; inset: 0; z-index: 70; background: var(--bg0);
     display: flex; flex-direction: column; padding: 0 22px calc(18px + env(safe-area-inset-bottom));
-    opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    opacity: 0; pointer-events: none;
+    transition: opacity .32s cubic-bezier(.22,.9,.35,1), transform .32s cubic-bezier(.22,.9,.35,1);
   }
-  .glance.open { opacity: 1; pointer-events: auto; }
+  .glance.open { opacity: 1; pointer-events: auto; transform: none !important; }
   .glance-progress { position: absolute; top: 0; left: 0; height: 4px; background: var(--p); transition: width 1s linear; }
   .glance-top {
     display: flex; justify-content: space-between; align-items: center;
@@ -784,13 +796,23 @@
   }
   .glance-top .range { font-variant-numeric: tabular-nums; }
   .glance-mid { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; gap: 6px; min-height: 0; }
+  .glance-mid-content { transition: opacity .14s ease; }
+  .glance-ringwrap { position: relative; width: min(58vw, 220px); margin: 0 auto; }
+  .glance-ring { display: block; width: 100%; height: auto; transform: rotate(-90deg); }
+  .glance-ring-track { fill: none; stroke: var(--stroke-soft); stroke-width: 5; }
+  .glance-ring-fill {
+    fill: none; stroke: var(--p); stroke-width: 5; stroke-linecap: round;
+    stroke-dasharray: 578; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear, stroke .3s ease;
+  }
+  .glance-ringwrap.ending .glance-ring-fill { stroke: var(--gold-hi); }
   .glance-count {
-    font-size: clamp(72px, 24vw, 120px); font-weight: 800; line-height: 1;
-    font-variant-numeric: tabular-nums; letter-spacing: -2px; color: var(--chalk);
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: clamp(46px, 13vw, 68px); font-weight: 800; line-height: 1;
+    font-variant-numeric: tabular-nums; letter-spacing: -1.5px; color: var(--chalk);
   }
   .glance-count.ending { color: var(--gold-hi); animation: pulse 1s ease infinite; }
   .glance-lab { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--chalk-faint); }
-  .glance-title { font-family: 'Fraunces', serif; font-size: clamp(26px, 8vw, 38px); color: var(--chalk); margin-top: 10px; }
+  .glance-title { font-family: 'Fraunces', serif; font-size: clamp(26px, 8vw, 38px); color: var(--chalk); margin-top: 14px; }
   .glance-aim { font-size: clamp(18px, 5.5vw, 24px); color: var(--chalk-muted); }
   .glance-target {
     display: inline-block; margin: 10px auto 0; padding: 8px 16px; border-radius: 999px;
@@ -799,17 +821,23 @@
   }
   .glance-next { text-align: center; color: var(--chalk-faint); font-size: 14.5px; padding: 10px 0 14px; }
   .glance-next strong { color: var(--chalk-muted); }
+  .glance-swipe-hint { text-align: center; color: var(--chalk-faint); font-size: 11.5px; opacity: .6; padding-bottom: 4px; }
   .glance-ctls { display: flex; gap: 10px; }
   .glance-ctls button {
     border-radius: var(--r-btn); cursor: pointer; font: inherit; font-weight: 700; font-size: 15px;
     display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px 0;
     background: linear-gradient(180deg, var(--glass-hi), var(--glass-lo)); color: var(--chalk);
-    border: 1px solid var(--stroke-soft);
+    border: 1px solid var(--stroke-soft); transition: transform .1s ease;
   }
+  .glance-ctls button:active { transform: scale(.96); }
   .glance-ctls svg { width: 20px; height: 20px; }
   .glance-ctls .g-pause { flex: 2; border-color: color-mix(in srgb, var(--p) 55%, transparent); }
   .glance-ctls .g-skip { flex: 1; }
   .glance-ctls .g-close { flex: 1; color: var(--chalk-muted); }
+  @media (prefers-reduced-motion: reduce) {
+    .glance { transition: opacity .15s ease; }
+    .glance-mid-content { transition: none; }
+  }
 
   /* remix sheet */
   .sheet-veil { position: fixed; inset: 0; z-index: 60; background: rgba(3,12,8,.68); backdrop-filter: blur(5px); opacity: 0; transition: opacity .22s ease; }
@@ -1107,7 +1135,10 @@
   <button class="live-ctl" id="livePauseBtn" aria-label="Pause session">
     <svg id="livePauseIcon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
   </button>
-  <button class="live-ctl live-end" id="liveEndBtn" aria-label="End session">End</button>
+  <button class="live-ctl live-end" id="liveEndBtn" aria-label="Hold to end session">
+    <span class="live-end-fill" id="liveEndFill"></span>
+    <span class="live-end-lab">End</span>
+  </button>
 </div>
 
 <!-- Live Mode: full-screen glance view -->
@@ -1119,11 +1150,20 @@
   </div>
   <div class="glance-mid">
     <div class="glance-lab">left in this block</div>
-    <div class="glance-count" id="glanceCount">0:00</div>
-    <div class="glance-title" id="glanceTitle"></div>
-    <div class="glance-aim" id="glanceAim"></div>
-    <div id="glanceTargetWrap"></div>
+    <div class="glance-ringwrap" id="glanceRingWrap">
+      <svg class="glance-ring" viewBox="0 0 200 200">
+        <circle class="glance-ring-track" cx="100" cy="100" r="92"/>
+        <circle class="glance-ring-fill" id="glanceRingFill" cx="100" cy="100" r="92"/>
+      </svg>
+      <div class="glance-count" id="glanceCount">0:00</div>
+    </div>
+    <div class="glance-mid-content" id="glanceMidContent">
+      <div class="glance-title" id="glanceTitle"></div>
+      <div class="glance-aim" id="glanceAim"></div>
+      <div id="glanceTargetWrap"></div>
+    </div>
   </div>
+  <div class="glance-swipe-hint">swipe for next · previous · minimize</div>
   <div class="glance-next" id="glanceNext"></div>
   <div class="glance-ctls">
     <button class="g-close" id="glanceCloseBtn">
@@ -3460,19 +3500,27 @@ function fmtClock(min) {
 function chime() {
   try {
     chimeCtx = chimeCtx || new (window.AudioContext || window.webkitAudioContext)();
-    const t = chimeCtx.currentTime;
-    [[880, 0, .7], [1174.66, .15, .9]].forEach(([freq, delay, dur]) => {
-      const o = chimeCtx.createOscillator(), g = chimeCtx.createGain();
-      o.connect(g); g.connect(chimeCtx.destination);
-      o.frequency.value = freq;
-      g.gain.setValueAtTime(.0001, t + delay);
-      g.gain.exponentialRampToValueAtTime(.16, t + delay + .03);
-      g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-      o.start(t + delay); o.stop(t + dur + .05);
-    });
+    const play = () => {
+      const t = chimeCtx.currentTime;
+      [[880, 0, .7], [1174.66, .15, .9]].forEach(([freq, delay, dur]) => {
+        const o = chimeCtx.createOscillator(), g = chimeCtx.createGain();
+        o.connect(g); g.connect(chimeCtx.destination);
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(.0001, t + delay);
+        g.gain.exponentialRampToValueAtTime(.16, t + delay + .03);
+        g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+        o.start(t + delay); o.stop(t + dur + .05);
+      });
+    };
+    // iOS Safari starts every AudioContext suspended until resumed inside a
+    // user gesture — without this the chime can silently never play.
+    if (chimeCtx.state === 'suspended') chimeCtx.resume().then(play).catch(play);
+    else play();
   } catch { /* audio blocked — vibration still fires */ }
   if (navigator.vibrate) navigator.vibrate([120, 80, 120]);
 }
+// Short tactile blip for taps/swipes — distinct from the longer block-change chime pattern.
+function tapHaptic() { if (navigator.vibrate) navigator.vibrate(10); }
 
 async function acquireWakeLock() {
   try { wakeLock = await navigator.wakeLock?.request('screen'); } catch { /* unsupported/denied — non-fatal */ }
@@ -3482,7 +3530,12 @@ function releaseWakeLock() {
   wakeLock = null;
 }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible' && state.live && !state.live.pausedAt) acquireWakeLock();
+  if (document.visibilityState !== 'visible' || !state.live) return;
+  if (!state.live.pausedAt) acquireWakeLock();
+  // Unlocking the phone mid-session should show the right time instantly,
+  // not wait up to 1s for the next tick. Glance (if open) simply stays open —
+  // nothing closes it on hide, so it's still there when you look back.
+  liveTick(true);
 });
 
 function saveLive() {
@@ -3499,15 +3552,20 @@ function startLive(resumeData) {
     ? { startedAt: resumeData.startedAt, pausedAt: resumeData.pausedAt, tick: null }
     : { startedAt: Date.now(), pausedAt: null, tick: null };
   chimeCtx = chimeCtx || (() => { try { return new (window.AudioContext || window.webkitAudioContext)(); } catch { return null; } })();
+  // We're inside a real user gesture (the Start tap) — the best possible
+  // moment to warm up the audio context so the first chime isn't dropped.
+  try { if (chimeCtx && chimeCtx.state === 'suspended') chimeCtx.resume(); } catch { /* ignore */ }
   $('actionBar').style.display = 'none';
   $('liveBar').hidden = false;
   document.querySelector('.tap-hint').textContent = 'Tap a block to jump the clock there';
   if (!state.live.pausedAt) acquireWakeLock();
   paintPause();
   state.live.tick = setInterval(liveTick, 1000);
-  liveTick(true);
   saveLive();
-  if (!resumeData) toast('Session started — screen will stay awake.');
+  // Glance is the whole point of Live Mode — jump straight into it. A fresh
+  // start gets the grow-from-the-bar animation; a resumed session (page
+  // just reloaded) opens instantly, since there's no bar tap to grow from.
+  openGlance(!!resumeData);
 }
 
 function endLive(silent) {
@@ -3521,14 +3579,14 @@ function endLive(silent) {
   closeGlance();
   const hint = document.querySelector('.tap-hint');
   if (hint) hint.textContent = 'Tap a block to mark where you are';
-  const endBtn = $('liveEndBtn');
-  endBtn.classList.remove('confirm'); endBtn.textContent = 'End';
+  $('liveEndBtn').classList.remove('holding');
   if (!silent) toast('Session ended. Well played.');
 }
 
 function pauseLive() {
   const l = state.live;
   if (!l) return;
+  tapHaptic();
   if (l.pausedAt) {
     l.startedAt += Date.now() - l.pausedAt; // shift start so elapsed freezes across the pause
     l.pausedAt = null;
@@ -3561,6 +3619,8 @@ function liveJumpTo(i) {
   saveLive();
 }
 
+const GLANCE_RING_CIRC = 578; // 2π·92, matches the SVG ring radius
+
 function liveTick(force) {
   const l = state.live;
   if (!l) return;
@@ -3577,8 +3637,10 @@ function liveTick(force) {
     setTimeout(openFeedback, 1200);
     return;
   }
-  if (i !== state.currentBlock) {
-    const first = state.currentBlock === -1 && min < 0.05;
+
+  const blockChanged = i !== state.currentBlock;
+  const first = blockChanged && state.currentBlock === -1 && min < 0.05;
+  if (blockChanged) {
     state.currentBlock = i;
     paintCurrentBlock();
     if (!first && !force) chime();
@@ -3592,13 +3654,29 @@ function liveTick(force) {
 
   if ($('glance').classList.contains('open')) {
     const left = Number(b.end) - min;
+    const dur = Number(b.end) - Number(b.start);
+    const frac = dur > 0 ? Math.min(1, Math.max(0, 1 - left / dur)) : 0; // 0 at block start → 1 at block end
+    const ending = left <= 1 && !l.pausedAt;
     $('glanceCount').textContent = fmtClock(left);
-    $('glanceCount').classList.toggle('ending', left <= 1 && !l.pausedAt);
+    $('glanceCount').classList.toggle('ending', ending);
+    $('glanceRingWrap').classList.toggle('ending', ending);
+    $('glanceRingFill').style.strokeDashoffset = String(GLANCE_RING_CIRC * frac);
     $('glanceSession').textContent = (l.pausedAt ? 'Paused · ' : '') + `${fmtClock(min)} of ${total} min`;
     $('glanceRange').textContent = fmtRange(b) + ' min';
-    $('glanceTitle').textContent = b.title;
-    $('glanceAim').textContent = b.aim || '';
-    $('glanceTargetWrap').innerHTML = b.target ? `<span class="glance-target">${esc(b.target)}</span>` : '';
+
+    const renderMid = () => {
+      $('glanceTitle').textContent = b.title;
+      $('glanceAim').textContent = b.aim || '';
+      $('glanceTargetWrap').innerHTML = b.target ? `<span class="glance-target">${esc(b.target)}</span>` : '';
+    };
+    if (blockChanged && !first && !REDUCED) {
+      const mid = $('glanceMidContent');
+      mid.style.opacity = '0';
+      setTimeout(() => { renderMid(); mid.style.opacity = '1'; }, 140);
+    } else {
+      renderMid();
+    }
+
     const next = blocks[i + 1];
     $('glanceNext').innerHTML = next
       ? `Next: <strong>${esc(next.title)}</strong> · in ${fmtClock(Number(b.end) - min)}`
@@ -3607,15 +3685,37 @@ function liveTick(force) {
   }
 }
 
-function openGlance() {
+// Glance grows out of the live bar's on-screen position rather than popping
+// in flat — the same rect is used symmetrically for open and close so the
+// motion reads as one continuous surface, not a modal.
+function glanceShrinkTransform() {
+  const r = $('liveMain').getBoundingClientRect();
+  const sx = r.width / innerWidth, sy = r.height / innerHeight;
+  return `translate(${r.left}px, ${r.top}px) scale(${sx}, ${sy})`;
+}
+function openGlance(instant) {
   if (!state.live) return;
-  $('glance').classList.add('open');
-  $('glance').setAttribute('aria-hidden', 'false');
+  const glanceEl = $('glance');
+  glanceEl.setAttribute('aria-hidden', 'false');
+  if (!instant && !REDUCED) {
+    glanceEl.style.transformOrigin = '0 0';
+    glanceEl.style.transform = glanceShrinkTransform();
+    void glanceEl.offsetHeight; // commit the shrunk, still-hidden "from" frame
+  } else {
+    glanceEl.style.transform = 'none';
+  }
+  glanceEl.classList.add('open');
   liveTick(true);
 }
 function closeGlance() {
-  $('glance').classList.remove('open');
-  $('glance').setAttribute('aria-hidden', 'true');
+  const glanceEl = $('glance');
+  glanceEl.setAttribute('aria-hidden', 'true');
+  if (!glanceEl.classList.contains('open')) return;
+  if (!REDUCED) {
+    glanceEl.style.transformOrigin = '0 0';
+    glanceEl.style.transform = glanceShrinkTransform(); // pre-set while masked by .open's !important
+  }
+  glanceEl.classList.remove('open'); // reveals the shrink target + fades out together
 }
 
 // Resume a session that survived a page reload (e.g. phone locked mid-drill).
@@ -3809,20 +3909,33 @@ renderFocus();
 
 $('generateBtn').addEventListener('click', generate);
 $('startLiveBtn').addEventListener('click', () => startLive());
-$('liveMain').addEventListener('click', openGlance);
+$('liveMain').addEventListener('click', () => openGlance());
 $('livePauseBtn').addEventListener('click', pauseLive);
-$('liveEndBtn').addEventListener('click', () => {
+
+// Press-and-hold to end — deliberate, hard to trigger by accident, no
+// jarring "Sure?" text swap. Releasing early aborts and resets instantly.
+const END_HOLD_MS = 600;
+let endHoldTimer = null;
+function startEndHold(e) {
+  e.preventDefault();
   const btn = $('liveEndBtn');
-  if (btn.classList.contains('confirm')) {
+  btn.style.setProperty('--hold-ms', END_HOLD_MS + 'ms');
+  btn.classList.add('holding');
+  endHoldTimer = setTimeout(() => {
+    btn.classList.remove('holding');
     const playedEnough = liveElapsedMin() >= 10;
     endLive();
     if (playedEnough) setTimeout(openFeedback, 900);
-    return;
-  }
-  btn.classList.add('confirm');
-  btn.textContent = 'Sure?';
-  setTimeout(() => { btn.classList.remove('confirm'); btn.textContent = 'End'; }, 3000);
-});
+  }, END_HOLD_MS);
+}
+function cancelEndHold() {
+  clearTimeout(endHoldTimer);
+  $('liveEndBtn').classList.remove('holding');
+}
+const endBtn = $('liveEndBtn');
+endBtn.addEventListener('pointerdown', startEndHold);
+['pointerup', 'pointerleave', 'pointercancel'].forEach((evt) => endBtn.addEventListener(evt, cancelEndHold));
+
 $('glanceCloseBtn').addEventListener('click', closeGlance);
 $('fbSkipBtn').addEventListener('click', closeFeedback);
 $('fbSubmitBtn').addEventListener('click', submitFeedback);
@@ -3830,9 +3943,46 @@ $('fbVeil').addEventListener('click', closeFeedback);
 $('glancePauseBtn').addEventListener('click', pauseLive);
 $('glanceSkipBtn').addEventListener('click', () => {
   if (!state.live) return;
+  tapHaptic();
   const next = liveBlockAt(liveElapsedMin()) + 1;
   if (next < liveBlocks().length) liveJumpTo(next);
 });
+
+// Swipe gestures inside Glance: left = next block, right = back to the
+// start of this block (or the previous one if barely into it), down =
+// minimize to the live bar. Buttons remain the visible/accessible fallback.
+(() => {
+  const el = $('glance');
+  const THRESH = 60;
+  let sx = 0, sy = 0, tracking = false, guard = false;
+  el.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return; // don't hijack taps on the controls
+    tracking = true; sx = e.clientX; sy = e.clientY;
+  });
+  el.addEventListener('pointerup', (e) => {
+    if (!tracking || guard) { tracking = false; return; }
+    tracking = false;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > THRESH) {
+      if (!state.live) return;
+      guard = true;
+      tapHaptic();
+      if (dx < 0) {
+        const next = liveBlockAt(liveElapsedMin()) + 1;
+        if (next < liveBlocks().length) liveJumpTo(next);
+      } else {
+        const i = liveBlockAt(liveElapsedMin());
+        const intoBlock = liveElapsedMin() - Number(liveBlocks()[i].start);
+        liveJumpTo(intoBlock < 0.15 && i > 0 ? i - 1 : i);
+      }
+      setTimeout(() => { guard = false; }, 400);
+    } else if (dy > THRESH && dy > Math.abs(dx)) {
+      tapHaptic();
+      closeGlance();
+    }
+  });
+  el.addEventListener('pointercancel', () => { tracking = false; });
+})();
 $('menuBtn').addEventListener('click', openDrawer);
 $('drawerVeil').addEventListener('click', closeDrawer);
 $('summaryBar').addEventListener('click', backToAsk);
