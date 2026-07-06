@@ -3912,7 +3912,7 @@ function liveTick(force) {
 
     const renderMid = () => {
       $('glanceTitle').textContent = b.title;
-      $('glanceAim').textContent = b.aim || '';
+      $('glanceAim').textContent = b.drill || b.aim || '';
       $('glanceTargetWrap').innerHTML = b.target ? `<span class="glance-target">${esc(b.target)}</span>` : '';
     };
     if (blockChanged && !first && !REDUCED) {
