@@ -2711,6 +2711,17 @@ function fmtWhen(iso) {
   return new Date(iso).toLocaleDateString('en-IE', { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
+// Signal at a tennis club is unreliable — keep the last successful fetch
+// per-user so Past Sessions still shows something offline instead of a
+// blank shelf. Never used across different users on the same device.
+function historyCacheKey(uid) { return `pp_history_cache_${uid}`; }
+function readHistoryCache(uid) {
+  try { return JSON.parse(localStorage.getItem(historyCacheKey(uid)) || '[]'); } catch { return []; }
+}
+function writeHistoryCache(uid, list) {
+  try { localStorage.setItem(historyCacheKey(uid), JSON.stringify(list)); } catch { /* storage full/unavailable — non-fatal */ }
+}
+
 async function refreshHistory() {
   if (!currentUser) { historyCache = []; renderShelf(); return; }
   const { data, error } = await sb.from('practicepal_sessions')
@@ -2718,7 +2729,12 @@ async function refreshHistory() {
     .order('favourite', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(20);
-  if (error) { console.error('history fetch failed', error); historyCache = []; renderShelf(); return; }
+  if (error) {
+    console.error('history fetch failed', error);
+    historyCache = readHistoryCache(currentUser.id); // likely offline — show the last known list
+    renderShelf();
+    return;
+  }
   historyCache = (data || []).map((row) => ({
     id: row.id,
     favourite: !!row.favourite,
@@ -2729,6 +2745,7 @@ async function refreshHistory() {
     },
     plan: row.plan,
   }));
+  writeHistoryCache(currentUser.id, historyCache);
   renderShelf();
 }
 
@@ -4058,6 +4075,15 @@ tryLoadShared().then((loaded) => { if (!loaded) tryResumeLive(); });
     history.replaceState(null, '', window.location.pathname + window.location.search);
   }
 })();
+
+// Offline support: once this has been visited with signal, the app shell
+// (this page, manifest, icons) keeps loading with none — clubs are dead
+// zones and Live Mode can't depend on a connection mid-session.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => console.error('SW registration failed', err));
+  });
+}
 </script>
 </body>
 </html>
